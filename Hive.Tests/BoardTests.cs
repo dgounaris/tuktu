@@ -32,18 +32,6 @@ public class BoardTests
         var board = new Board();
         board.Print();
     }
-    
-    [Theory]
-    [InlineData(0, 0)]
-    public void GetSurroundingPositionsSucceeds(int q, int p)
-    {
-        var board = new Board();
-        var position = new Position(q, p);
-        
-        var surroundingPositions = board.GetSurroundingPositions(position);
-        
-        Assert.Equal(6, surroundingPositions.Count());
-    }
 
     [Theory]
     [InlineData(-1, -1, true)]
@@ -86,6 +74,15 @@ public class BoardTests
         var result = board.IsPositionInitializable(new Position(q, r), color);
         
         Assert.Equal(expectedResult, result);
+    }
+    
+    [Theory]
+    [InlineData()]
+    public void GetInitializablePositionsSucceeds()
+    {
+        var board = new Board();
+        //throw new Exception();
+        // todo it will be much easier to test this after loading from notations
     }
 
     [Theory]

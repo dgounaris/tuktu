@@ -10,4 +10,6 @@ public interface IPiece
     
     // 1st, 2nd, ... player's piece
     public int PieceNumber { get; set; }
+
+    public IEnumerable<Position> GetValidMoves(Board board);
 }

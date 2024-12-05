@@ -12,4 +12,8 @@ public class Grasshopper : IPiece
     public bool Color { get; set; }
     
     public int PieceNumber { get; set; }
+    public IEnumerable<Position> GetValidMoves(Board board)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -1,4 +1,6 @@
-﻿namespace Hive;
+﻿using Hive.Movement;
+
+namespace Hive;
 
 public class Game
 {
@@ -31,7 +33,7 @@ public class Game
             if (_players[i].Queen.Position != null)
             {
                 bool isBeeSurrounded = true;
-                foreach (var position in Board.GetSurroundingPositions(_players[i].Queen.Position!))
+                foreach (var position in MovementUtilities.GetSurroundingPositions(_players[i].Queen.Position!))
                 {
                     if (Board.Get(position) is not null)
                     {

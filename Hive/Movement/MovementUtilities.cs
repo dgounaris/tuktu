@@ -45,4 +45,18 @@ public static class MovementUtilities
     {
         return new Position(p.Q, p.R + 1);
     }
+    
+    public static IEnumerable<Position> GetSurroundingPositions(Position position)
+    {
+        var positions = new List<Position>
+        {
+            GetPositionSW(position),
+            GetPositionW(position),
+            GetPositionNW(position),
+            GetPositionNE(position),
+            GetPositionE(position),
+            GetPositionSE(position)
+        };
+        return positions;
+    }
 }

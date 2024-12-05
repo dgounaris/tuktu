@@ -17,22 +17,18 @@ public class Queen : IPiece
     
     public IEnumerable<Position> GetValidMoves(Board board)
     {
-        var validMoves = new List<Position>();
         if (Position is null)
         {
-            // todo return new positions
-            return validMoves;
+            return board.GetInitializablePositions(Color);
         }
-        foreach (var candidatePosition in board.GetSurroundingPositions(Position!))
+        var candidatePositions = MovementUtilities.GetSurroundingPositions(Position!);
+        if (Position is null)
         {
-            if (board.Get(candidatePosition) is null && board.IsPositionConnectedToHive(candidatePosition))
-                // todo also 2 adjacent slots in the direction are not covered (to not create pocket)
-            // function to return this will take both candidate and current position, because it will be reused for ant, spider and beetle
-            {
-                
-                validMoves.Add(candidatePosition);
-            }
+            return candidatePositions.Where(it => board.IsPositionInitializable(it, Color));
         }
-        return validMoves;
+
+        return candidatePositions.Where(it => board.Get(it) is null &&
+                                              board.IsPositionConnectedToHive(it) &&
+                                              board.IsAdjacentPositionSlideReachable(Position, it));
     }
 }

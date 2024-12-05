@@ -1,6 +1,6 @@
 ﻿namespace Hive;
 
-public class Position
+public record Position
 {
     public int Q { get; set; }
     public int R { get; set; }

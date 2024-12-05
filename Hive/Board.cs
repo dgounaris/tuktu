@@ -35,23 +35,9 @@ public class Board
             it.Color == color && it.GetPieceIdentifier() == pieceId && it.PieceNumber == pieceNumber);
     }
 
-    public IEnumerable<Position> GetSurroundingPositions(Position position)
-    {
-        var positions = new List<Position>
-        {
-            MovementUtilities.GetPositionSW(position),
-            MovementUtilities.GetPositionW(position),
-            MovementUtilities.GetPositionNW(position),
-            MovementUtilities.GetPositionNE(position),
-            MovementUtilities.GetPositionE(position),
-            MovementUtilities.GetPositionSE(position)
-        };
-        return positions;
-    }
-
     public bool IsPositionConnectedToHive(Position position)
     {
-        foreach (var iterPosition in GetSurroundingPositions(position))
+        foreach (var iterPosition in MovementUtilities.GetSurroundingPositions(position))
         {
             if (Get(iterPosition) is not null)
             {
@@ -59,6 +45,30 @@ public class Board
             }
         }
         return false;
+    }
+
+    // todo test this
+    public IEnumerable<Position> GetInitializablePositions(bool color)
+    {
+        var positions = new List<Position>();
+        if (_pieces.Count == 0)
+        {
+            positions.Add(new Position(0, 0));
+            return positions;
+        }
+
+        foreach (var piece in _pieces)
+        {
+            var surroundingPositions = MovementUtilities.GetSurroundingPositions(piece.Position!);
+            foreach (var surroundingPosition in surroundingPositions)
+            {
+                if (IsPositionInitializable(surroundingPosition, color))
+                {
+                    positions.Add(surroundingPosition);
+                }
+            }
+        }
+        return positions;
     }
 
     public bool IsPositionInitializable(Position position, bool color)
@@ -69,11 +79,15 @@ public class Board
         }
         
         var existingBoardPieces = _pieces.Count;
-        if (existingBoardPieces < 2)
+        if (existingBoardPieces == 0)
+        {
+            return position.Q == 0 && position.R == 0;
+        }
+        if (existingBoardPieces == 1)
         {
             return true;
         }
-        var surroundingPositions = GetSurroundingPositions(position);
+        var surroundingPositions = MovementUtilities.GetSurroundingPositions(position);
         var surroundingSameColor = 0;
         var surroundingOtherColor = 0;
         foreach (var surroundingPosition in surroundingPositions)
@@ -98,12 +112,13 @@ public class Board
 
     public bool IsAdjacentPositionSlideReachable(Position originalPosition, Position proposedPosition)
     {
+        // todo check if during slide, hive gets split
         if (Get(proposedPosition) is not null)
         {
             return false;
         }
         
-        var surroundingPositions = GetSurroundingPositions(originalPosition).ToList();
+        var surroundingPositions = MovementUtilities.GetSurroundingPositions(originalPosition).ToList();
         var indexOfProposedPosition = surroundingPositions.FindIndex(it => it.Q == proposedPosition.Q && it.R == proposedPosition.R);
         
         if (indexOfProposedPosition == -1)
@@ -138,9 +153,19 @@ public class Board
             {
                 Console.Write("  ");
             }
-            for (var q = westMostPos - 2; q <= eastMostPos + 2; q++)
+
+            int qOffset = 0;
+            if (r < 0)
             {
-                var pieceOnLocation = _pieces.FirstOrDefault(it => it.Position!.Q == q && it.Position.R == r);
+                qOffset = (r-1) / 2;
+            }
+            else if (r > 0)
+            {
+                qOffset = r / 2;
+            }
+            for (var q = westMostPos - 2 - qOffset; q <= eastMostPos + 2 - qOffset; q++)
+            {
+                var pieceOnLocation = _pieces.LastOrDefault(it => it.Position!.Q == q && it.Position.R == r);
                 if (pieceOnLocation is null)
                 {
                     Console.Write("  .  ");
