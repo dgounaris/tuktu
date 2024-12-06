@@ -86,6 +86,19 @@ public class BoardTests
     }
 
     [Theory]
+    [InlineData(":wbQ+0-1wS1+0-2bA1+1-1bG1+2-2wB1-1+0wG1-1-1**@bA**@bB**@bG**@bS***@wA*@wB**@wG*@wQ*@wS")]
+    public void LoadFromNotationSucceeds(string notation)
+    {
+        var board = new Board();
+        board.LoadFromNotation(notation);
+        
+        Assert.Equal('Q', board.Get(new Position(0, -1))!.GetPieceIdentifier());
+        Assert.False(board.Get(new Position(0, -1))!.Color);
+        Assert.Equal('G', board.Get(new Position(-1, -1))!.GetPieceIdentifier());
+        Assert.True(board.Get(new Position(-1, -1))!.Color);
+    }
+
+    [Theory]
     [InlineData(0, -1, 0, 0, false)]
     [InlineData(0, 0, 0, -1, false)]
     [InlineData(2, -1, 1, 0, false)]

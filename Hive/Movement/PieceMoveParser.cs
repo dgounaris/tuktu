@@ -94,15 +94,11 @@ public class PieceMoveParser
                 }
             }
         }
-        
-        return pieceId switch
-        {
-            'Q' => new Queen { Color = color, Position = newPosition, PieceNumber = pieceNumber },
-            'B' => new Beetle { Color = color, Position = newPosition, PieceNumber = pieceNumber },
-            'G' => new Grasshopper { Color = color, Position = newPosition, PieceNumber = pieceNumber },
-            'S' => new Spider { Color = color, Position = newPosition, PieceNumber = pieceNumber },
-            'A' => new Ant { Color = color, Position = newPosition, PieceNumber = pieceNumber },
-            _ => throw new Exception($"Unknown piece type {pieceId}")
-        };
+
+        var piece = PieceUtilities.ResolvePieceFromId(pieceId);
+        piece.PieceNumber = pieceNumber;
+        piece.Color = color;
+        piece.Position = newPosition;
+        return piece;
     }
 }

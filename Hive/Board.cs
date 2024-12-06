@@ -1,10 +1,15 @@
-﻿using Hive.Movement;
+﻿using System.Text.RegularExpressions;
+using Hive.Movement;
 using Hive.Pieces;
 
 namespace Hive;
 
 public class Board
 {
+    private static Regex _notationRegex =
+        new Regex(":(w|b)((?:w|b)(?:A|G|B|Q|S)(?:1|2|3)?(?:(?:\\+|-)\\d+)?(?:(?:\\+|-)\\d+)?)*((?:\\*)*@(?:w|b)(?:A|G|B|Q|S))*", RegexOptions.Compiled);
+    private static Regex _pieceInBoardRegex = new Regex("(w|b)(A|G|B|Q|S)(1|2|3)?((?:\\+|-)\\d+)?((?:\\+|-)\\d+)?", RegexOptions.Compiled);
+    private static Regex _pieceInHandRegex = new Regex("(\\*)*@(w|b)(A|G|B|Q|S)", RegexOptions.Compiled);
     private List<IPiece> _pieces = new List<IPiece>();
 
     public void Set(IPiece piece)
@@ -132,6 +137,34 @@ public class Board
         }
 
         return true;
+    }
+
+    public void LoadFromNotation(string notation)
+    {
+        var notationMatch = _notationRegex.Match(notation);
+        if (!notationMatch.Success)
+        {
+            throw new ArgumentException("Invalid notation structure");
+        }
+
+        var piecesInBoard = notationMatch.Groups[2].Captures.Select(it => it.Value);
+        var piecesInHand = notationMatch.Groups[3].Captures.Select(it => it.Value);
+
+        foreach (var pieceInBoard in piecesInBoard)
+        {
+            var pieceInBoardMatch = _pieceInBoardRegex.Match(pieceInBoard);
+            var piece = PieceUtilities.ResolvePieceFromId(pieceInBoardMatch.Groups[2].Value[0]);
+            piece.Color = pieceInBoardMatch.Groups[1].Value == "w";
+
+            piece.PieceNumber = string.IsNullOrWhiteSpace(pieceInBoardMatch.Groups[3].Value)
+                ? 1
+                : pieceInBoardMatch.Groups[3].Value[0] - '0';
+            piece.Position = new Position(int.Parse(pieceInBoardMatch.Groups[4].Value), int.Parse(pieceInBoardMatch.Groups[5].Value));
+            
+            Set(piece);
+        }
+        
+        // todo handle pieces in hand
     }
 
     public void Print()
