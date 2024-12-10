@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections;
+using System.Text.RegularExpressions;
 using Hive.Movement;
 using Hive.Pieces;
 
@@ -11,6 +12,7 @@ public class Board
     private static Regex _pieceInBoardRegex = new Regex("(w|b)(A|G|B|Q|S)(1|2|3)?((?:\\+|-)\\d+)?((?:\\+|-)\\d+)?", RegexOptions.Compiled);
     private static Regex _pieceInHandRegex = new Regex("(\\*)*@(w|b)(A|G|B|Q|S)", RegexOptions.Compiled);
     private List<IPiece> _pieces = new List<IPiece>();
+    private List<IPiece> _piecesInHand = new List<IPiece>();
 
     public void Set(IPiece piece)
     {
@@ -22,15 +24,28 @@ public class Board
         _pieces.Add(piece);
     }
 
+    public int GetPiecesOnBoardCount(bool color)
+    {
+        return _pieces.Count(it => it.Color == color);
+    }
+
+    public int GetPiecesInHandCount(bool color)
+    {
+        return _piecesInHand.Count(it => it.Color == color);
+    }
+    
     public IPiece? Get(Position position)
     {
-        // last or default will come in handy when we have beetles functionality working
-        return _pieces.LastOrDefault(it => it.Position.Q == position.Q && it.Position.R == position.R);
+        return _pieces.LastOrDefault(it => it.Position == position);
+    }
+    
+    public List<IPiece> GetAll(Position position)
+    {
+        return _pieces.Where(it => it.Position == position).ToList();
     }
 
     public void Remove(Position position)
     {
-        // last will come in handy when we have beetles functionality working
         _pieces.RemoveAt(_pieces.FindLastIndex(it => it.Position == position));
     }
     
@@ -53,6 +68,46 @@ public class Board
     }
 
     // todo test this
+    public bool IsPieceHiveConnectivitySignificant(IPiece piece)
+    {
+        var idx = _pieces.FindIndex(it => piece == it);
+        _pieces.Remove(piece);
+        var result = IsHiveConnected();
+        _pieces.Insert(idx, piece);
+        return !result;
+    }
+
+    public bool IsHiveConnected()
+    {
+        if (_pieces.Count == 0)
+        {
+            return true;
+        }
+
+        var lookupPieces = new Queue<IPiece>();
+        var discoveredPieces = new List<IPiece>();
+        lookupPieces.Enqueue(_pieces.First());
+        while (lookupPieces.Count > 0)
+        {
+            var pivot = lookupPieces.Dequeue();
+            foreach (var surroundingPlace in MovementUtilities.GetSurroundingPositions(pivot.Position!))
+            {
+                var piecesOnSurroundingPlace = GetAll(surroundingPlace);
+                if (!piecesOnSurroundingPlace.Any() || discoveredPieces.Contains(piecesOnSurroundingPlace.First()))
+                {
+                    continue;
+                }
+                foreach (var pieceOnSurroundingPlace in piecesOnSurroundingPlace)
+                {
+                    discoveredPieces.Add(pieceOnSurroundingPlace);
+                }
+                lookupPieces.Enqueue(piecesOnSurroundingPlace.First());
+            }
+        }
+        
+        return discoveredPieces.Count == _pieces.Count;
+    }
+
     public IEnumerable<Position> GetInitializablePositions(bool color)
     {
         var positions = new List<Position>();
@@ -73,7 +128,7 @@ public class Board
                 }
             }
         }
-        return positions;
+        return positions.Distinct();
     }
 
     public bool IsPositionInitializable(Position position, bool color)
@@ -117,7 +172,6 @@ public class Board
 
     public bool IsAdjacentPositionSlideReachable(Position originalPosition, Position proposedPosition)
     {
-        // todo check if during slide, hive gets split
         if (Get(proposedPosition) is not null)
         {
             return false;
@@ -150,6 +204,7 @@ public class Board
         var piecesInBoard = notationMatch.Groups[2].Captures.Select(it => it.Value);
         var piecesInHand = notationMatch.Groups[3].Captures.Select(it => it.Value);
 
+        var onTopPieceStack = new Stack<IPiece>();
         foreach (var pieceInBoard in piecesInBoard)
         {
             var pieceInBoardMatch = _pieceInBoardRegex.Match(pieceInBoard);
@@ -159,12 +214,39 @@ public class Board
             piece.PieceNumber = string.IsNullOrWhiteSpace(pieceInBoardMatch.Groups[3].Value)
                 ? 1
                 : pieceInBoardMatch.Groups[3].Value[0] - '0';
-            piece.Position = new Position(int.Parse(pieceInBoardMatch.Groups[4].Value), int.Parse(pieceInBoardMatch.Groups[5].Value));
-            
-            Set(piece);
+
+            if (string.IsNullOrWhiteSpace(pieceInBoardMatch.Groups[4].Value)) // piece on top of piece
+            {
+                onTopPieceStack.Push(piece);
+            }
+            else
+            {
+                piece.Position = new Position(int.Parse(pieceInBoardMatch.Groups[4].Value),
+                    int.Parse(pieceInBoardMatch.Groups[5].Value));
+                Set(piece);
+                while (onTopPieceStack.Count > 0)
+                {
+                    var onTopPiece = onTopPieceStack.Pop();
+                    onTopPiece.Position = piece.Position;
+                    Set(onTopPiece);
+                }
+            }
         }
-        
-        // todo handle pieces in hand
+
+        foreach (var pieceInHand in piecesInHand)
+        {
+            var pieceInHandMatch = _pieceInHandRegex.Match(pieceInHand);
+            var piece = PieceUtilities.ResolvePieceFromId(pieceInHandMatch.Groups[3].Value[0]);
+            piece.Color = pieceInHandMatch.Groups[2].Value == "w";
+            int matchAsteriskCount = 0;
+            foreach (var _ in pieceInHandMatch.Groups[1].Captures)
+            {
+                matchAsteriskCount++;
+                piece.PieceNumber = _pieces.Count(it => it.Color == piece.Color && it.GetPieceIdentifier() == piece.GetPieceIdentifier()) + matchAsteriskCount;
+                piece.Position = null;
+                _piecesInHand.Add(piece);
+            }
+        }
     }
 
     public void Print()
@@ -219,5 +301,7 @@ public class Board
             }
             Console.WriteLine();
         }
+        
+        // todo print stacked sequences
     }
 }

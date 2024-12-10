@@ -29,6 +29,7 @@ public class Queen : IPiece
 
         return candidatePositions.Where(it => board.Get(it) is null &&
                                               board.IsPositionConnectedToHive(it) &&
+                                              !board.IsPieceHiveConnectivitySignificant(this) &&
                                               board.IsAdjacentPositionSlideReachable(Position, it));
     }
 }
