@@ -22,13 +22,10 @@ public class Queen : IPiece
             return board.GetInitializablePositions(Color);
         }
         var candidatePositions = MovementUtilities.GetSurroundingPositions(Position!);
-        if (Position is null)
-        {
-            return candidatePositions.Where(it => board.IsPositionInitializable(it, Color));
-        }
 
         return candidatePositions.Where(it => board.Get(it) is null &&
-                                              board.IsPositionConnectedToHive(it) &&
+                                              board.GetAll(Position).Count == 1 &&
+                                              board.IsPositionConnectedToHive(it).Count > 1 && // should "connect" to the piece and also to the rest of hive 
                                               !board.IsPieceHiveConnectivitySignificant(this) &&
                                               board.IsAdjacentPositionSlideReachable(Position, it));
     }

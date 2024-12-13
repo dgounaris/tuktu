@@ -55,16 +55,17 @@ public class Board
             it.Color == color && it.GetPieceIdentifier() == pieceId && it.PieceNumber == pieceNumber);
     }
 
-    public bool IsPositionConnectedToHive(Position position)
+    public List<Position> IsPositionConnectedToHive(Position position)
     {
+        var connectedPositions = new List<Position>();
         foreach (var iterPosition in MovementUtilities.GetSurroundingPositions(position))
         {
             if (Get(iterPosition) is not null)
             {
-                return true;
+                connectedPositions.Add(iterPosition);
             }
         }
-        return false;
+        return connectedPositions;
     }
 
     // todo test this
@@ -185,12 +186,16 @@ public class Board
             return false;
         }
 
-        if (Get(surroundingPositions[Math.Max(indexOfProposedPosition - 1, 0) % 6]) is not null && Get(surroundingPositions[(indexOfProposedPosition + 1) % 6]) is not null)
+        if (Get(surroundingPositions[Math.Max(indexOfProposedPosition + 5, 0) % 6]) is not null && Get(surroundingPositions[(indexOfProposedPosition + 1) % 6]) is not null)
         {
             return false;
         }
-
-        return true;
+        
+        // when a piece slides, it should still be able to touch at least one piece it was previously touching, otherwise it's disconnect-reconnect for hive
+        var adjacentPositionsWithPieces = surroundingPositions.Where(it => Get(it) is not null);
+        var candidateAdjacentPositionsWithPieces = MovementUtilities.GetSurroundingPositions(proposedPosition)
+            .Where(it => Get(it) is not null);
+        return adjacentPositionsWithPieces.Intersect(candidateAdjacentPositionsWithPieces).Any();
     }
 
     public void LoadFromNotation(string notation)

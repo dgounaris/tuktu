@@ -17,6 +17,10 @@ public class Beetle : IPiece
 
     public IEnumerable<Position> GetValidMoves(Board board)
     {
+        if (Position is null)
+        {
+            return board.GetInitializablePositions(Color);
+        }
         var candidatePositions = MovementUtilities.GetSurroundingPositions(Position!);
         if (Position is null)
         {
@@ -28,13 +32,16 @@ public class Beetle : IPiece
     private bool IsEmptyPositionToMoveTo(Board board, Position it)
     {
         return board.Get(it) is null &&
-               board.IsPositionConnectedToHive(it) &&
-               board.IsAdjacentPositionSlideReachable(Position, it);
+               board.IsPositionConnectedToHive(it).Count > 1 && // should "connect" to the piece and also to the rest of hive 
+               !board.IsPieceHiveConnectivitySignificant(this) &&
+               (board.IsAdjacentPositionSlideReachable(Position, it) || board.GetAll(Position).Count > 1);
     }
     
     private bool IsOccupiedPositionToJumpOn(Board board, Position it)
     {
         return board.Get(it) is not null &&
-               board.IsPositionConnectedToHive(it);
+               (board.IsPositionConnectedToHive(it).Count > 1 || board.GetAll(Position).Count > 1) &&
+               !board.IsPieceHiveConnectivitySignificant(this) &&
+               MovementUtilities.GetSurroundingPositions(Position).Contains(it);
     }
 }

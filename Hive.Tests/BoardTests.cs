@@ -50,7 +50,7 @@ public class BoardTests
 
         var result = board.IsPositionConnectedToHive(new Position(q, r));
         
-        Assert.Equal(expectedResult, result);
+        Assert.Equal(expectedResult, result.Count > 0);
     }
     
     [Theory]
@@ -170,8 +170,8 @@ public class BoardTests
     [InlineData(0, -1, 0, 0, false)]
     [InlineData(0, 0, 0, -1, false)]
     [InlineData(2, -1, 1, 0, false)]
-    [InlineData(2, -1, 3, -1, true)]
-    [InlineData(2, -1, 3, -2, true)]
+    [InlineData(2, -1, 3, -1, false)]
+    [InlineData(2, -1, 3, -2, false)]
     [InlineData(2, -1, 2, -2, true)]
     [InlineData(2, -1, 2, 0, true)]
     [InlineData(2, -1, 3, 0, false)]
@@ -180,11 +180,7 @@ public class BoardTests
     public void IsAdjacentPositionSlideReachableSucceeds(int qOrigin, int rOrigin, int qProposed, int rProposed, bool expectedResult)
     {
         var board = new Board();
-        board.Set(new Beetle { Position = new Position(-1, 0), Color = true, PieceNumber = 1 });
-        board.Set(new Ant { Position = new Position(-1, 1), Color = false, PieceNumber = 1 });
-        board.Set(new Queen { Position = new Position(0, 1), Color = false, PieceNumber = 1 });
-        board.Set(new Grasshopper { Position = new Position(1, 0), Color = false, PieceNumber = 1 });
-        board.Set(new Ant { Position = new Position(1, -1), Color = false, PieceNumber = 1 });
+        board.LoadFromNotation(":wwQ+0+1bG1+1+0wA1+1-1wB1-1+0bA1-1+1**@bA**@bB**@bG*@bQ**@bS**@wA*@wB***@wG**@wS");
 
         var result = board.IsAdjacentPositionSlideReachable(new Position(qOrigin, rOrigin), new Position(qProposed, rProposed));
         
