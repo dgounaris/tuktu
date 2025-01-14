@@ -3,18 +3,23 @@ using Hive.Pieces;
 
 namespace Hive.Tests;
 
-public class BoardTests
+public class GameTests
 {
-    [Fact]
-    public void SetBoardPieceSucceeds()
+    [Theory]
+    [InlineData(":wwB2+0+0bG2+0-1bG1+0-2bA1+0-3bB1wB1+1-1wQ+1-2wG2+1-4bA2+2-2wA1+2-3wA2+2-4wG1+3-3wA3+3-4*@bA*@bB*@bG*@bQ**@bS*@wG**@wS", -1)]
+    [InlineData(":wwB2+0+0bG2+0-1bG1+0-2bA1+0-3bB1wB1+1-1wQ+1-2wG2+1-4bA2+2-2wA1+2-3wA2+2-4wG1+3-3wA3+3-4bQ+4-4*@bA*@bB*@bG**@bS*@wG**@wS", -1)]
+    [InlineData(":wwB2+0+0bG2+0-1bG1+0-2bA1+0-3bB1wB1+1-1wQ+1-2bQ+1-3wG2+1-4bA2+2-2wA1+2-3wG1+3-3wA3+3-4wA2+4-3*@bA*@bB*@bG**@bS*@wG**@wS", 0)]
+    [InlineData(":wbG2+0-1wA2+0-2wG1+0-3bB1wB1+1-1wA3+1-2bQ+1-3wG2+1-4wQ+2-1bA2+2-2wA1+2-3wB2+2-4bG1+3-2bA1+3-4*@bA*@bB*@bG**@bS*@wG**@wS", 1)]
+    public void IsGameOverSucceeds(string notation, int expectedResult)
     {
         var board = new Board();
-        var position = new Position(0, -1);
-
-        var piece = board.GetPiece(true, 'A', 1)!;
-        piece.Position = position;
+        var game = new Game();
+        game.Board = board;
+        board.LoadFromNotation(notation);
         
-        Assert.Equal(board.Get(new Position(0, -1)), piece);
+        var result = game.IsGameOver();
+        
+        Assert.Equal(expectedResult, result);
     }
 
     [Fact]

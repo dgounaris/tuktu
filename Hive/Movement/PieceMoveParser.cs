@@ -4,7 +4,7 @@ namespace Hive.Movement;
 
 public class PieceMoveParser
 {
-    public IPiece Parse(Board board, string move)
+    public Tuple<IPiece, Position> Parse(Board board, string move)
     {
         var parts = move.Split(' ');
         var color = parts[0][0] == 'w';
@@ -99,6 +99,6 @@ public class PieceMoveParser
         piece.PieceNumber = pieceNumber;
         piece.Color = color;
         piece.Position = newPosition;
-        return piece;
+        return new Tuple<IPiece, Position>(piece, newPosition);
     }
 }

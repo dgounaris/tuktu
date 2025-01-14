@@ -1,18 +1,16 @@
 ﻿using Hive.Movement;
+using Hive.Pieces;
 
 namespace Hive;
 
 public class Game
 {
     public Board Board;
-    private Player[] _players = new Player[2];
     private int _currentPlayerIndex = -1;
     
     public Game()
     {
         Board = new Board();
-        _players[0] = new Player();
-        _players[1] = new Player();
     }
     
     public void StartGame()
@@ -25,15 +23,32 @@ public class Game
         _currentPlayerIndex = (_currentPlayerIndex + 1) % 2;
     }
 
-    // returns -1 for no game over, otherwise returns the index of the winning player
-    public async Task<int> IsGameOver()
+    public Dictionary<IPiece, List<Position>> GetAllValidMoves(bool color)
     {
-        for (int i = 0; i < _players.Length; i++)
+        Dictionary<IPiece, List<Position>> allValidMoves = new Dictionary<IPiece, List<Position>>();
+
+        foreach (var piece in Board.GetAll(color))
         {
-            if (_players[i].Queen.Position != null)
+            allValidMoves.Add(piece, piece.GetValidMoves(Board).ToList());
+        }
+
+        return allValidMoves;
+    }
+    
+    public IPiece GetPiece(bool color, char pieceId, int pieceNumber)
+    {
+        return Board.GetAll(color).Single(it => it.GetPieceIdentifier() == pieceId && it.PieceNumber == pieceNumber);
+    }
+
+    // returns -1 for no game over, otherwise returns the index of the winning player
+    public int IsGameOver()
+    {
+        for (int i = 0; i <= 1; i++)
+        {
+            if (Board.GetPiece(i == 0, 'Q', 1)!.Position != null)
             {
                 bool isBeeSurrounded = true;
-                foreach (var position in MovementUtilities.GetSurroundingPositions(_players[i].Queen.Position!))
+                foreach (var position in MovementUtilities.GetSurroundingPositions(Board.GetPiece(i == 0, 'Q', 1)!.Position!))
                 {
                     if (Board.Get(position) is not null)
                     {

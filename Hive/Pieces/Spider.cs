@@ -53,13 +53,9 @@ public class Spider : IPiece
                 board.IsAdjacentPositionSlideReachable(currentPosition, candidatePosition))
             {
                 var previousPosition = Position;
-                board.Remove(Position);
                 Position = candidatePosition;
-                board.Set(this);
                 result.AddRange(GetValidMovesRecursive(candidatePosition, board, traversedPositions.Append(candidatePosition).ToList()));
-                board.Remove(Position);
                 Position = previousPosition;
-                board.Set(this);
             }
         }
 

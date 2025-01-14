@@ -4,11 +4,11 @@ public class PrintCommandHandler : ICommandHandler
 {
     public string CommandString { get; } = "p";
 
-    public void Handle(Board board, string command)
+    public void Handle(Game game, string command)
     {
         try
         {
-            board.Print();
+            game.Board.Print();
         }
         catch (Exception e)
         {

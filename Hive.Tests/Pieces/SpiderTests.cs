@@ -28,9 +28,11 @@ public class SpiderTests
         var board = new Board();
         board.LoadFromNotation(notation);
         var piece = board.GetPiece(true, 'S', 1);
+        var positionBefore = piece.Position;
 
         var moves = piece.GetValidMoves(board).ToList();
         
         Assert.Equal(validMoves, moves.Count);
+        Assert.Equal(positionBefore, piece.Position);
     }
 }

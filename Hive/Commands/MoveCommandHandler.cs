@@ -8,21 +8,20 @@ public class MoveCommandHandler : ICommandHandler
     private readonly PieceMoveParser _pieceMoveParser = new();
     public string CommandString { get; } = "m";
 
-    public void Handle(Board board, string command)
+    public void Handle(Game game, string command)
     {
         try
         {
-            IPiece piece = _pieceMoveParser.Parse(board, command[(command.IndexOf(' ') + 1)..]);
-            var boardPiece = board.GetPiece(piece.Color, piece.GetPieceIdentifier(), piece.PieceNumber);
-            if (boardPiece is null)
+            var (parsedPiece, parsedPosition) = _pieceMoveParser.Parse(game.Board, command[(command.IndexOf(' ') + 1)..]);
+            var realPiece = game.GetPiece(parsedPiece.Color, parsedPiece.GetPieceIdentifier(), parsedPiece.PieceNumber);
+            
+            if (realPiece.GetValidMoves(game.Board).Contains(parsedPosition) is false)
             {
-                board.Set(piece);
+                throw new InvalidOperationException("Invalid move " + command);
             }
-            else
-            {
-                board.Remove(boardPiece.Position!);
-                board.Set(piece);
-            }
+            
+            var boardPiece = game.Board.GetPiece(parsedPiece.Color, parsedPiece.GetPieceIdentifier(), parsedPiece.PieceNumber);
+            boardPiece.Position = parsedPosition;
 
             Console.WriteLine("OK");
         } 

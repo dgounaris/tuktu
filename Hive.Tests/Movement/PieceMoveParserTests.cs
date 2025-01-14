@@ -20,7 +20,7 @@ public class PieceMoveParserTests
     public void PieceMoveOnEmptyBoardIsParsed(string move, Type type, int pieceNumber, bool color, int q, int r)
     {
         var board = new Board();
-        var piece = _pieceMoveParser.Parse(board, move);
+        var (piece, position) = _pieceMoveParser.Parse(board, move);
         Assert.NotNull(piece);
         Assert.Equal(type, piece.GetType());
         Assert.Equal(pieceNumber, piece.PieceNumber);
@@ -44,10 +44,10 @@ public class PieceMoveParserTests
     public void PieceMoveOnNonEmptyBoardIsParsed(string move, Type type, int pieceNumber, bool color, int q, int r)
     {
         var board = new Board();
-        board.Set(new Ant { Position = new Position(0, -1), Color = true, PieceNumber = 1 });
-        board.Set(new Grasshopper { Position = new Position(1, -1), Color = false, PieceNumber = 1 });
-        board.Set(new Queen { Position = new Position(1, -2), Color = true, PieceNumber = 1 });
-        var piece = _pieceMoveParser.Parse(board, move);
+        board.GetPiece(true, 'A', 1)!.Position = new Position(0, -1);
+        board.GetPiece(false, 'G', 1)!.Position = new Position(1, -1);
+        board.GetPiece(true, 'Q', 1)!.Position = new Position(1, -2);
+        var (piece, position) = _pieceMoveParser.Parse(board, move);
         Assert.NotNull(piece);
         Assert.Equal(type, piece.GetType());
         Assert.Equal(pieceNumber, piece.PieceNumber);
@@ -61,10 +61,10 @@ public class PieceMoveParserTests
     public void PieceMoveOnTopOfOtherPieceIsParsed(string move, Type type, int pieceNumber, bool color, int q, int r)
     {
         var board = new Board();
-        board.Set(new Ant { Position = new Position(0, -1), Color = true, PieceNumber = 1 });
-        board.Set(new Grasshopper { Position = new Position(1, -1), Color = false, PieceNumber = 1 });
-        board.Set(new Queen { Position = new Position(1, -2), Color = true, PieceNumber = 1 });
-        var piece = _pieceMoveParser.Parse(board, move);
+        board.GetPiece(true, 'A', 1)!.Position = new Position(0, -1);
+        board.GetPiece(true, 'G', 1)!.Position = new Position(1, -1);
+        board.GetPiece(true, 'Q', 1)!.Position = new Position(1, -2);
+        var (piece, position) = _pieceMoveParser.Parse(board, move);
         Assert.NotNull(piece);
         Assert.Equal(type, piece.GetType());
         Assert.Equal(pieceNumber, piece.PieceNumber);
