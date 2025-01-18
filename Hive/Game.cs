@@ -34,6 +34,11 @@ public class Game
 
         return allValidMoves;
     }
+
+    public string ParseToNotation()
+    {
+        return $":{(_currentPlayerIndex == 1 ? "b" : "w")}{Board.ParseToNotation()}";
+    }
     
     public IPiece GetPiece(bool color, char pieceId, int pieceNumber)
     {

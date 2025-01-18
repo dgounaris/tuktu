@@ -362,6 +362,35 @@ public class Board
             Console.Write($"{piece.Print()}  ");
         }
         Console.WriteLine();
+        Console.WriteLine("Board notation representation: " + ParseToNotation());
+    }
+
+    public string ParseToNotation()
+    {
+        var groupedBoardPiecesByPosition = _pieces.Where(it => it.Position is not null).GroupBy(it => it.Position).ToList();
+        var groupedHandPiecesByType = _pieces.Where(it => it.Position is null).GroupBy(it => $"{(it.Color ? "w" : "b")}{it.GetPieceIdentifier()}");
+
+        var notation = "";
+        
+        foreach (var boardPiecesGroup in groupedBoardPiecesByPosition)
+        {
+            foreach (var piece in boardPiecesGroup.Reverse())
+            {
+                notation += piece.Print();
+            }
+            notation += $"{boardPiecesGroup.First().Position!.Q:+#;-#;+0}{boardPiecesGroup.First().Position!.R:+#;-#;+0}";
+        }
+        
+        foreach (var handPiecesGroup in groupedHandPiecesByType)
+        {
+            foreach (var handPiece in handPiecesGroup)
+            {
+                notation += "*";
+            }
+            notation += $"@{handPiecesGroup.Key}";
+        }
+        
+        return notation;
     }
 
     private List<IPiece> InitializePieces()
