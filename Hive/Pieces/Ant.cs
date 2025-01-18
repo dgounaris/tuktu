@@ -50,9 +50,9 @@ public class Ant : IPiece
                 board.IsAdjacentPositionSlideReachable(currentPosition, candidatePosition))
             {
                 var previousPosition = Position;
-                Position = candidatePosition;
+                board.Set(this, candidatePosition);
                 result.AddRange(GetValidMovesRecursive(candidatePosition, board, traversedPositions.Append(candidatePosition).ToList()));
-                Position = previousPosition;
+                board.Set(this, previousPosition);
             }
         }
 

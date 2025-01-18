@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using Hive.Movement;
 using Hive.Pieces;
@@ -19,15 +20,13 @@ public class Board
         _pieces = InitializePieces();
     }
 
-    /*public void Set(IPiece piece)
+    public void Set(IPiece piece, Position p)
     {
-        if (piece.Position is null)
-        {
-            throw new ArgumentException("Piece position is null");
-        }
-
-        _pieces.Add(piece);
-    }*/
+        var selectedPiece = _pieces.Single(it => it == piece);
+        _pieces.Remove(selectedPiece);
+        selectedPiece.Position = p;
+        _pieces.Add(selectedPiece);
+    }
 
     public int GetPiecesOnBoardCount(bool color)
     {
@@ -54,15 +53,16 @@ public class Board
         return _pieces.Where(it => it.Color == color).ToList();
     }
 
-    public void Remove(Position position)
+    public void RemoveFromBoard(Position position)
     {
-        _pieces.RemoveAt(_pieces.FindLastIndex(it => it.Position == position));
+        Get(position)!.Position = null;
     }
     
-    public IPiece? GetPiece(bool color, char pieceId, int pieceNumber)
+    public IPiece GetPiece(bool color, char pieceId, int pieceNumber)
     {
         return _pieces.SingleOrDefault(it => 
-            it.Color == color && it.GetPieceIdentifier() == pieceId && it.PieceNumber == pieceNumber);
+            it.Color == color && it.GetPieceIdentifier() == pieceId && it.PieceNumber == pieceNumber) ??
+               throw new ArgumentException($"Piece not found: {color} {pieceId} {pieceNumber}");
     }
 
     public List<Position> IsPositionConnectedToHive(Position position)
@@ -78,13 +78,12 @@ public class Board
         return connectedPositions;
     }
 
-    // todo test this
     public bool IsPieceHiveConnectivitySignificant(IPiece piece)
     {
-        var idx = _pieces.FindIndex(it => piece == it);
-        _pieces.Remove(piece);
+        var position = piece.Position;
+        piece.Position = null;
         var result = IsHiveConnected();
-        _pieces.Insert(idx, piece);
+        piece.Position = position;
         return !result;
     }
 
@@ -131,7 +130,7 @@ public class Board
             return positions;
         }
 
-        foreach (var piece in onBoardPieces.Where(it => it.Position is not null))
+        foreach (var piece in onBoardPieces)
         {
             var surroundingPositions = MovementUtilities.GetSurroundingPositions(piece.Position!);
             foreach (var surroundingPosition in surroundingPositions)
@@ -168,7 +167,7 @@ public class Board
         var surroundingOtherColor = 0;
         foreach (var surroundingPosition in surroundingPositions)
         {
-            var pieceOnPosition = onBoardPieces.FirstOrDefault(it =>
+            var pieceOnPosition = onBoardPieces.LastOrDefault(it =>
                 it.Position!.Q == surroundingPosition.Q && it.Position.R == surroundingPosition.R);
             if (pieceOnPosition is null)
             {
@@ -220,56 +219,72 @@ public class Board
         {
             throw new ArgumentException("Invalid notation structure");
         }
-
-        var piecesInBoard = notationMatch.Groups[2].Captures.Select(it => it.Value);
-        var piecesInHand = notationMatch.Groups[3].Captures.Select(it => it.Value);
-
-        var onTopPieceStack = new Stack<IPiece>();
-        foreach (var pieceInBoard in piecesInBoard)
+        
+        var backupList = _pieces.ToImmutableList();
+        try
         {
-            var pieceInBoardMatch = _pieceInBoardRegex.Match(pieceInBoard);
-            var piece = GetPiece(
-                pieceInBoardMatch.Groups[1].Value == "w",
-                pieceInBoardMatch.Groups[2].Value[0],
-                string.IsNullOrWhiteSpace(pieceInBoardMatch.Groups[3].Value)
-                    ? 1
-                    : pieceInBoardMatch.Groups[3].Value[0] - '0')!;
-            
-            if (string.IsNullOrWhiteSpace(pieceInBoardMatch.Groups[4].Value)) // piece on top of piece
+            _pieces.ForEach(it => it.Position = null);
+
+            var piecesInBoard = notationMatch.Groups[2].Captures.Select(it => it.Value);
+            var piecesInHand = notationMatch.Groups[3].Captures.Select(it => it.Value);
+
+            var onTopPieceStack = new Stack<IPiece>();
+            foreach (var pieceInBoard in piecesInBoard)
             {
-                onTopPieceStack.Push(piece);
-            }
-            else
-            {
-                piece.Position = new Position(int.Parse(pieceInBoardMatch.Groups[4].Value),
-                    int.Parse(pieceInBoardMatch.Groups[5].Value));
-                while (onTopPieceStack.Count > 0)
+                var pieceInBoardMatch = _pieceInBoardRegex.Match(pieceInBoard);
+                var piece = GetPiece(
+                    pieceInBoardMatch.Groups[1].Value == "w",
+                    pieceInBoardMatch.Groups[2].Value[0],
+                    string.IsNullOrWhiteSpace(pieceInBoardMatch.Groups[3].Value)
+                        ? 1
+                        : pieceInBoardMatch.Groups[3].Value[0] - '0')!;
+
+                if (string.IsNullOrWhiteSpace(pieceInBoardMatch.Groups[4].Value)) // piece on top of piece
                 {
-                    var onTopPiece = onTopPieceStack.Pop();
-                    onTopPiece.Position = piece.Position;
-                    // shuffle items to make sure stacking works
-                    _pieces.Remove(onTopPiece);
-                    _pieces.Add(onTopPiece);
+                    onTopPieceStack.Push(piece);
+                }
+                else
+                {
+                    piece.Position = new Position(int.Parse(pieceInBoardMatch.Groups[4].Value),
+                        int.Parse(pieceInBoardMatch.Groups[5].Value));
+                    while (onTopPieceStack.Count > 0)
+                    {
+                        var onTopPiece = onTopPieceStack.Pop();
+                        onTopPiece.Position = piece.Position;
+                        // shuffle items to make sure stacking works
+                        _pieces.Remove(onTopPiece);
+                        _pieces.Add(onTopPiece);
+                    }
+                }
+            }
+
+            foreach (var pieceInHand in piecesInHand)
+            {
+                var pieceInHandMatch = _pieceInHandRegex.Match(pieceInHand);
+                int matchAsteriskCount = 0;
+                foreach (var _ in pieceInHandMatch.Groups[1].Captures)
+                {
+                    matchAsteriskCount++;
+                }
+
+                var piecesOfTypeOnBoard = _pieces.Where(it => it.Position is not null &&
+                                                              it.Color == (pieceInHandMatch.Groups[2].Value == "w") &&
+                                                              it.GetPieceIdentifier() ==
+                                                              pieceInHandMatch.Groups[3].Value[0]).ToList();
+                var piecesOfType = _pieces.Where(it => it.Color == (pieceInHandMatch.Groups[2].Value == "w") &&
+                                                       it.GetPieceIdentifier() == pieceInHandMatch.Groups[3].Value[0]).ToList();
+                if (piecesOfTypeOnBoard.Count + matchAsteriskCount != piecesOfType.Count)
+                {
+                    throw new ArgumentException(
+                        $"Too many pieces ({piecesOfTypeOnBoard.Count + matchAsteriskCount}) of type {pieceInHandMatch.Groups[3].Value[0]} and color {pieceInHandMatch.Groups[2].Value == "w"}");
                 }
             }
         }
-
-        // todo test if resetting a board by notation works (re-nulls positions etc)
-        foreach (var pieceInHand in piecesInHand)
+        catch (Exception e)
         {
-            var pieceInHandMatch = _pieceInHandRegex.Match(pieceInHand);
-            int matchAsteriskCount = 0;
-            foreach (var _ in pieceInHandMatch.Groups[1].Captures)
-            {
-                matchAsteriskCount++;
-                var piece = GetPiece(
-                    pieceInHandMatch.Groups[2].Value == "w",
-                    pieceInHandMatch.Groups[3].Value[0],
-                    _pieces.Where(it => it.Position is not null)
-                        .Count(it => it.Color == (pieceInHandMatch.Groups[2].Value == "w") &&
-                                     it.GetPieceIdentifier() == pieceInHandMatch.Groups[3].Value[0]) + matchAsteriskCount);
-                piece.Position = null;
-            }
+            _pieces = backupList.ToList();
+            Console.WriteLine(e);
+            throw;
         }
     }
 
@@ -305,29 +320,48 @@ public class Board
             }
             for (var q = westMostPos - 2 - qOffset; q <= eastMostPos + 2 - qOffset; q++)
             {
-                var pieceOnLocation = _pieces.LastOrDefault(it => it.Position!.Q == q && it.Position.R == r);
+                var pieceOnLocation = _pieces.LastOrDefault(it => it.Position?.Q == q && it.Position?.R == r);
                 if (pieceOnLocation is null)
                 {
                     Console.Write("  .  ");
                 }
                 else
                 {
-                    string colorAsStr;
-                    if (pieceOnLocation.Color)
-                    {
-                        colorAsStr = "w";
-                    }
-                    else
-                    {
-                        colorAsStr = "b";
-                    }
-                    Console.Write($" {colorAsStr}{pieceOnLocation.GetPieceIdentifier()}{pieceOnLocation.PieceNumber} ");
+                    Console.Write($" {pieceOnLocation.Print()} ");
                 }
             }
             Console.WriteLine();
         }
-        
-        // todo print stacked sequences
+
+        var stackedPiecesList = piecesOnBoard.GroupBy(it => it.Position).Where(it => it.Count() > 1)
+            .Select(it => it.Reverse().ToList()).ToList();
+        if (stackedPiecesList.Count > 0)
+        {
+            Console.WriteLine("Stacked pieces sequences:");
+            foreach (var stackedPieces in stackedPiecesList)
+            {
+                Console.Write($"{stackedPieces.First().Print()}");
+                foreach (var piece in stackedPieces.Skip(1))
+                {
+                    Console.Write($" -> {piece.Print()}");
+                }
+                Console.WriteLine();
+            }
+        }
+
+        var whitePiecesOnHand = _pieces.Where(it => it.Position is null && it.Color).ToList();
+        var blackPiecesOnHand = _pieces.Where(it => it.Position is null && !it.Color).ToList();
+        Console.WriteLine("White pieces on hand:");
+        foreach (var piece in whitePiecesOnHand)
+        {
+            Console.Write($"{piece.Print()}  ");
+        }
+        Console.WriteLine("\nBlack pieces on hand:");
+        foreach (var piece in blackPiecesOnHand)
+        {
+            Console.Write($"{piece.Print()}  ");
+        }
+        Console.WriteLine();
     }
 
     private List<IPiece> InitializePieces()
@@ -339,7 +373,8 @@ public class Board
                 new Queen
                 {
                     Color = coloridx == 0,
-                    PieceNumber = 1
+                    PieceNumber = 1,
+                    Position = null
                 }
             );
             for (var i = 1; i <= 2; i++)
@@ -347,7 +382,8 @@ public class Board
                 pieces.Add(new Beetle()
                     {
                         Color = coloridx == 0,
-                        PieceNumber = i
+                        PieceNumber = i,
+                        Position = null
                     }
                 );
             }
@@ -357,7 +393,8 @@ public class Board
                 pieces.Add(new Grasshopper()
                     {
                         Color = coloridx == 0,
-                        PieceNumber = i
+                        PieceNumber = i,
+                        Position = null
                     }
                 );
             }
@@ -367,7 +404,8 @@ public class Board
                 pieces.Add(new Spider()
                     {
                         Color = coloridx == 0,
-                        PieceNumber = i
+                        PieceNumber = i,
+                        Position = null
                     }
                 );
             }
@@ -377,7 +415,8 @@ public class Board
                 pieces.Add(new Ant()
                     {
                         Color = coloridx == 0,
-                        PieceNumber = i
+                        PieceNumber = i,
+                        Position = null
                     }
                 );
             }

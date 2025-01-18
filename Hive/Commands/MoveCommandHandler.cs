@@ -21,10 +21,10 @@ public class MoveCommandHandler : ICommandHandler
             }
             
             var boardPiece = game.Board.GetPiece(parsedPiece.Color, parsedPiece.GetPieceIdentifier(), parsedPiece.PieceNumber);
-            boardPiece.Position = parsedPosition;
+            game.Board.Set(boardPiece, parsedPosition);
 
             Console.WriteLine("OK");
-        } 
+        }
         catch (Exception e)
         {
             Console.WriteLine("Unknown error");

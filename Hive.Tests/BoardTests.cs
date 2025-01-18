@@ -115,15 +115,37 @@ public class BoardTests
         Assert.Equal(1, board.Get(new Position(-1, -2 ))!.PieceNumber);
         Assert.True(board.Get(new Position(-1, -2 ))!.Color);
         
-        board.Remove(new Position(-1, -2 ));
+        board.RemoveFromBoard(new Position(-1, -2 ));
         Assert.Equal('B', board.Get(new Position(-1, -2 ))!.GetPieceIdentifier());
         Assert.Equal(2, board.Get(new Position(-1, -2 ))!.PieceNumber);
         Assert.True(board.Get(new Position(-1, -2 ))!.Color);
         
-        board.Remove(new Position(-1, -2 ));
+        board.RemoveFromBoard(new Position(-1, -2 ));
         Assert.Equal('B', board.Get(new Position(-1, -2 ))!.GetPieceIdentifier());
         Assert.Equal(1, board.Get(new Position(-1, -2 ))!.PieceNumber);
         Assert.False(board.Get(new Position(-1, -2 ))!.Color);
+    }
+    
+    [Fact]
+    public void LoadFromNotationASecondTimeResetsBoardCorrectly()
+    {
+        var board = new Board();
+        board.LoadFromNotation(":wbA1+0-3bB2wA1-1-1wB1wB2bB1-1-2**@bA***@bG*@bQ**@bS**@wA***@wG*@wQ**@wS");
+        Assert.NotNull(board.GetPiece(false, 'B', 1));
+        Assert.NotNull(board.GetPiece(true, 'B', 1));
+        
+        board.LoadFromNotation(":wwG1+0-1bA2+0-2bQ+1-2**@bA**@bB***@bG**@bS***@wA**@wB**@wG*@wQ**@wS");
+        
+        Assert.Equal(1, board.GetPiecesOnBoardCount(true));
+        Assert.Equal(2, board.GetPiecesOnBoardCount(false));
+        Assert.Equal(10, board.GetPiecesInHandCount(true));
+        Assert.Equal(9, board.GetPiecesInHandCount(false));
+        
+        Assert.Null(board.GetPiece(false, 'B', 1).Position);
+        Assert.Null(board.GetPiece(true, 'B', 1).Position);
+        Assert.Equal('Q', board.Get(new Position(1, -2 ))!.GetPieceIdentifier());
+        Assert.Equal(1, board.Get(new Position(1, -2 ))!.PieceNumber);
+        Assert.False(board.Get(new Position(1, -2 ))!.Color);
     }
 
     [Theory]

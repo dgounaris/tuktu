@@ -39,7 +39,6 @@ public class Grasshopper : IPiece
                 latestDirectionalPosition = new Position(latestDirectionalPosition.Q + deltaQ, latestDirectionalPosition.R + deltaR);
             }
             result.Add(latestDirectionalPosition);
-            // todo testing
         }
 
         return result;

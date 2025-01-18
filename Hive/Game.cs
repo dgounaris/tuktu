@@ -50,7 +50,7 @@ public class Game
                 bool isBeeSurrounded = true;
                 foreach (var position in MovementUtilities.GetSurroundingPositions(Board.GetPiece(i == 0, 'Q', 1)!.Position!))
                 {
-                    if (Board.Get(position) is not null)
+                    if (Board.Get(position) is null)
                     {
                         isBeeSurrounded = false;
                     }

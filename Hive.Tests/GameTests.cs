@@ -120,12 +120,12 @@ public class GameTests
         Assert.Equal(1, board.Get(new Position(-1, -2 ))!.PieceNumber);
         Assert.True(board.Get(new Position(-1, -2 ))!.Color);
         
-        board.Remove(new Position(-1, -2 ));
+        board.RemoveFromBoard(new Position(-1, -2 ));
         Assert.Equal('B', board.Get(new Position(-1, -2 ))!.GetPieceIdentifier());
         Assert.Equal(2, board.Get(new Position(-1, -2 ))!.PieceNumber);
         Assert.True(board.Get(new Position(-1, -2 ))!.Color);
         
-        board.Remove(new Position(-1, -2 ));
+        board.RemoveFromBoard(new Position(-1, -2 ));
         Assert.Equal('B', board.Get(new Position(-1, -2 ))!.GetPieceIdentifier());
         Assert.Equal(1, board.Get(new Position(-1, -2 ))!.PieceNumber);
         Assert.False(board.Get(new Position(-1, -2 ))!.Color);

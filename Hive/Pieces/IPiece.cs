@@ -12,4 +12,9 @@ public interface IPiece
     public int PieceNumber { get; set; }
 
     public IEnumerable<Position> GetValidMoves(Board board);
+
+    public string Print()
+    {
+        return (Color ? "w" : "b") + GetPieceIdentifier() + PieceNumber;
+    }
 }
