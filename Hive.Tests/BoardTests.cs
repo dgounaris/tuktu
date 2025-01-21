@@ -100,8 +100,6 @@ public class BoardTests
         Assert.Equal(handPiecesBlack, board.GetPiecesInHandCount(false));
     }
     
-    
-    
     [Fact]
     public void LoadFromNotationWithBeetlesOnTopOfPiecesSucceeds()
     {

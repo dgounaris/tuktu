@@ -7,6 +7,7 @@ public class Game
 {
     public Board Board;
     private int _currentPlayerIndex = -1;
+    private int _currentTurn = -1;
     
     public Game()
     {
@@ -16,6 +17,12 @@ public class Game
     public void StartGame()
     {
         _currentPlayerIndex = 0;
+        _currentTurn = 1;
+    }
+
+    public void PlayTurn()
+    {
+        // todo implement
     }
     
     public void EndTurn()
@@ -27,6 +34,19 @@ public class Game
     {
         Dictionary<IPiece, List<Position>> allValidMoves = new Dictionary<IPiece, List<Position>>();
 
+        if (_currentTurn == 7 && Board.GetPiece(true, 'Q', 1).Position is null)
+        {
+            var queen = Board.GetPiece(true, 'Q', 1);
+            allValidMoves.Add(queen, queen.GetValidMoves(Board).ToList());
+            return allValidMoves;
+        }
+        else if (_currentTurn == 8 && Board.GetPiece(false, 'Q', 1).Position is null)
+        {
+            var queen = Board.GetPiece(false, 'Q', 1);
+            allValidMoves.Add(queen, queen.GetValidMoves(Board).ToList());
+            return allValidMoves;
+        }
+        
         foreach (var piece in Board.GetAll(color))
         {
             allValidMoves.Add(piece, piece.GetValidMoves(Board).ToList());
@@ -35,7 +55,13 @@ public class Game
         return allValidMoves;
     }
 
-    public string ParseToNotation()
+    public void Print()
+    {
+        Board.Print();
+        Console.WriteLine("Board notation representation: " + ParseToNotation());
+    }
+
+    private string ParseToNotation()
     {
         return $":{(_currentPlayerIndex == 1 ? "b" : "w")}{Board.ParseToNotation()}";
     }

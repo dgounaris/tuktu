@@ -8,7 +8,7 @@ public class PrintCommandHandler : ICommandHandler
     {
         try
         {
-            game.Board.Print();
+            game.Print();
         }
         catch (Exception e)
         {

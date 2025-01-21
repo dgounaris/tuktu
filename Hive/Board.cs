@@ -362,7 +362,6 @@ public class Board
             Console.Write($"{piece.Print()}  ");
         }
         Console.WriteLine();
-        Console.WriteLine("Board notation representation: " + ParseToNotation());
     }
 
     public string ParseToNotation()
