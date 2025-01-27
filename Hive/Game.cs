@@ -14,20 +14,17 @@ public class Game
         Board = new Board();
     }
     
-    public void StartGame()
+    public void PlayMove(IPiece parsedPiece, Position parsedPosition)
     {
-        _currentPlayerIndex = 0;
-        _currentTurn = 1;
-    }
-
-    public void PlayTurn()
-    {
-        // todo implement
-    }
-    
-    public void EndTurn()
-    {
-        _currentPlayerIndex = (_currentPlayerIndex + 1) % 2;
+        var realPiece = GetPiece(parsedPiece.Color, parsedPiece.GetPieceIdentifier(), parsedPiece.PieceNumber);
+            
+        if (realPiece.GetValidMoves(Board).Contains(parsedPosition) is false)
+        {
+            throw new InvalidOperationException($"Invalid move: piece {parsedPiece.Print()}, new position {parsedPosition}");
+        }
+            
+        var boardPiece = Board.GetPiece(parsedPiece.Color, parsedPiece.GetPieceIdentifier(), parsedPiece.PieceNumber);
+        Board.Set(boardPiece, parsedPosition);
     }
 
     public Dictionary<IPiece, List<Position>> GetAllValidMoves(bool color)

@@ -3,15 +3,8 @@ using Hive.Pieces;
 
 namespace Hive.Tests.Movement;
 
-public class PieceMoveParserTests
+public class PieceMoveParsingUtilitiesTests
 {
-    private PieceMoveParser _pieceMoveParser;
-    
-    public PieceMoveParserTests()
-    {
-        _pieceMoveParser = new PieceMoveParser();
-    }
-    
     [Theory]
     [InlineData("wB .", typeof(Beetle), 1, true, 0, 0)]
     [InlineData("wB2 .", typeof(Beetle), 2, true, 0, 0)]
@@ -20,7 +13,7 @@ public class PieceMoveParserTests
     public void PieceMoveOnEmptyBoardIsParsed(string move, Type type, int pieceNumber, bool color, int q, int r)
     {
         var board = new Board();
-        var (piece, position) = _pieceMoveParser.Parse(board, move);
+        var (piece, position) = PieceMoveParsingUtilities.Parse(board, move);
         Assert.NotNull(piece);
         Assert.Equal(type, piece.GetType());
         Assert.Equal(pieceNumber, piece.PieceNumber);
@@ -47,7 +40,7 @@ public class PieceMoveParserTests
         board.GetPiece(true, 'A', 1)!.Position = new Position(0, -1);
         board.GetPiece(false, 'G', 1)!.Position = new Position(1, -1);
         board.GetPiece(true, 'Q', 1)!.Position = new Position(1, -2);
-        var (piece, position) = _pieceMoveParser.Parse(board, move);
+        var (piece, position) = PieceMoveParsingUtilities.Parse(board, move);
         Assert.NotNull(piece);
         Assert.Equal(type, piece.GetType());
         Assert.Equal(pieceNumber, piece.PieceNumber);
@@ -64,7 +57,7 @@ public class PieceMoveParserTests
         board.GetPiece(true, 'A', 1)!.Position = new Position(0, -1);
         board.GetPiece(true, 'G', 1)!.Position = new Position(1, -1);
         board.GetPiece(true, 'Q', 1)!.Position = new Position(1, -2);
-        var (piece, position) = _pieceMoveParser.Parse(board, move);
+        var (piece, position) = PieceMoveParsingUtilities.Parse(board, move);
         Assert.NotNull(piece);
         Assert.Equal(type, piece.GetType());
         Assert.Equal(pieceNumber, piece.PieceNumber);

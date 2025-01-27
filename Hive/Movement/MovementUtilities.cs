@@ -4,7 +4,7 @@ namespace Hive.Movement;
 
 public static class MovementUtilities
 {
-    // Piece-
+    // /Piece
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Position GetPositionSW(Position p)
     {

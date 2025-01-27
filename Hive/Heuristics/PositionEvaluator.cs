@@ -1,11 +1,62 @@
 ﻿using Hive.Movement;
+using Hive.Pieces;
 
 namespace Hive.Heuristics;
 
 public class PositionEvaluator
 {
-    // todo use this function in some command
-    public double Evaluate(Game game)
+    public List<PositionEvaluationResult> Evaluate(Game game, bool color, int maxDepth)
+    {
+        List<PositionEvaluationResult> result = [];
+        var allValidMoves = game.GetAllValidMoves(color).SelectMany(it => it.Value.Select(p => (it.Key, p)));
+
+        foreach (var move in allValidMoves)
+        {
+            var previousPosition = game.GetPiece(move.Key.Color, move.Key.GetPieceIdentifier(), move.Key.PieceNumber)
+                .Position;
+            game.Board.Set(move.Key, move.p);
+            var localEval = Evaluate(game, !color, maxDepth - 1,
+                color ? Double.PositiveInfinity : Double.NegativeInfinity, color ? Double.NegativeInfinity : Double.PositiveInfinity);
+            game.Board.Set(move.Key, previousPosition);
+            
+            result.Add(new PositionEvaluationResult
+            {
+                Piece = game.GetPiece(move.Key.Color, move.Key.GetPieceIdentifier(), move.Key.PieceNumber),
+                Move = PieceMoveParsingUtilities.PositionToMove(game.Board, move.p),
+                Score = localEval
+            });
+        }
+
+        return result;
+    }
+
+    public double Evaluate(Game game, bool color, int depth, double aScore, double bScore)
+    {
+        if (depth == 0 || (game.IsGameOver() != -1))
+        {
+            return color ? CalculateEvaluation(game) : -CalculateEvaluation(game);
+        }
+        
+        var allValidMoves = game.GetAllValidMoves(color).SelectMany(it => it.Value.Select(p => (it.Key, p)));
+        double localEval = Double.NegativeInfinity;
+        foreach (var move in allValidMoves)
+        {
+            var previousPosition = game.GetPiece(move.Key.Color, move.Key.GetPieceIdentifier(), move.Key.PieceNumber)
+                .Position;
+            game.Board.Set(move.Key, move.p);
+            localEval = Math.Max(localEval, -Evaluate(game, !color, depth-1, -aScore, -bScore));
+            aScore = Math.Max(aScore, localEval);
+            game.Board.Set(move.Key, previousPosition);
+            if (aScore >= bScore)
+            {
+                break;
+            }
+        }
+
+        return localEval;
+    }
+
+    private double CalculateEvaluation(Game game)
     {
         var evaluation = 0.0;
         for (var i = 0; i <= 1; i++)
@@ -50,11 +101,11 @@ public class PositionEvaluator
             var allValidMoves = game.GetAllValidMoves(evaluatingColor);
             if (evaluatingColor)
             {
-                evaluation -= allValidMoves.Count * 0.1;
+                evaluation += allValidMoves.Count * 0.1;
             }
             else
             {
-                evaluation += allValidMoves.Count * 0.1;
+                evaluation -= allValidMoves.Count * 0.1;
             }
         }
 

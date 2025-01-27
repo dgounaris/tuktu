@@ -20,7 +20,7 @@ public class Board
         _pieces = InitializePieces();
     }
 
-    public void Set(IPiece piece, Position p)
+    public void Set(IPiece piece, Position? p)
     {
         var selectedPiece = _pieces.Single(it => it == piece);
         _pieces.Remove(selectedPiece);

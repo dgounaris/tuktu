@@ -7,7 +7,8 @@ var commandHandlers = new List<ICommandHandler>
 {
     new PrintCommandHandler(),
     new MoveCommandHandler(),
-    new ImportCommandHandler()
+    new ImportCommandHandler(),
+    new EvaluateCommandHandler()
 };
 
 var game = new Game();

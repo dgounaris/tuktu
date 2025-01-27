@@ -2,9 +2,9 @@
 
 namespace Hive.Movement;
 
-public class PieceMoveParser
+public static class PieceMoveParsingUtilities
 {
-    public Tuple<IPiece, Position> Parse(Board board, string move)
+    public static Tuple<IPiece, Position> Parse(Board board, string move)
     {
         var parts = move.Split(' ');
         var color = parts[0][0] == 'w';
@@ -100,5 +100,45 @@ public class PieceMoveParser
         piece.Color = color;
         piece.Position = newPosition;
         return new Tuple<IPiece, Position>(piece, newPosition);
+    }
+
+    public static string PositionToMove(Board board, Position position)
+    {
+        // on empty board
+        if (board.GetPiecesOnBoardCount(true) == 0 && board.GetPiecesOnBoardCount(false) == 0)
+        {
+            return ".";
+        }
+        // on top of other piece
+        if (board.Get(position) is not null)
+        {
+            return board.Get(position)!.GetPieceIdentifier().ToString();
+        }
+        else if (board.Get(MovementUtilities.GetPositionSW(position)) is not null)
+        {
+            return $"/{board.Get(MovementUtilities.GetPositionSW(position))!.Print()}";
+        }
+        else if (board.Get(MovementUtilities.GetPositionW(position)) is not null)
+        {
+            return $"-{board.Get(MovementUtilities.GetPositionW(position))!.Print()}";
+        }
+        else if (board.Get(MovementUtilities.GetPositionNW(position)) is not null)
+        {
+            return $"\\{board.Get(MovementUtilities.GetPositionNW(position))!.Print()}";
+        }
+        else if (board.Get(MovementUtilities.GetPositionNE(position)) is not null)
+        {
+            return $"{board.Get(MovementUtilities.GetPositionNE(position))!.Print()}/";
+        }
+        else if (board.Get(MovementUtilities.GetPositionE(position)) is not null)
+        {
+            return $"{board.Get(MovementUtilities.GetPositionE(position))!.Print()}-";
+        }
+        else if (board.Get(MovementUtilities.GetPositionSE(position)) is not null)
+        {
+            return $"{board.Get(MovementUtilities.GetPositionSE(position))!.Print()}\\";
+        }
+
+        throw new InvalidOperationException($"Could not translate position {position} into valid move");
     }
 }

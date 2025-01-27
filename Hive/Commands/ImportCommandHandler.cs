@@ -9,7 +9,7 @@ public class ImportCommandHandler : ICommandHandler
         try
         {
             game.Board.LoadFromNotation(command[(command.IndexOf(' ') + 1)..]);
-            game.Board.Print();
+            game.Print();
         }
         catch (Exception e)
         {
