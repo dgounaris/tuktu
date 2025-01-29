@@ -49,10 +49,9 @@ public class Ant : IPiece
                 !board.IsPieceHiveConnectivitySignificant(this) &&
                 board.IsAdjacentPositionSlideReachable(currentPosition, candidatePosition))
             {
-                var previousPosition = Position;
                 board.Set(this, candidatePosition);
                 result.AddRange(GetValidMovesRecursive(candidatePosition, board, traversedPositions.Append(candidatePosition).ToList()));
-                board.Set(this, previousPosition);
+                board.UndoLastMove();
             }
         }
 

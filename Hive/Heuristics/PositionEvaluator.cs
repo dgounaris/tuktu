@@ -12,12 +12,10 @@ public class PositionEvaluator
 
         foreach (var move in allValidMoves)
         {
-            var previousPosition = game.GetPiece(move.Key.Color, move.Key.GetPieceIdentifier(), move.Key.PieceNumber)
-                .Position;
             game.Board.Set(move.Key, move.p);
             var localEval = Evaluate(game, !color, maxDepth - 1,
                 color ? Double.NegativeInfinity : Double.PositiveInfinity, color ? Double.PositiveInfinity : Double.NegativeInfinity);
-            game.Board.Set(move.Key, previousPosition);
+            game.Board.UndoLastMove();
             
             result.Add(new PositionEvaluationResult
             {
@@ -41,12 +39,10 @@ public class PositionEvaluator
         double localEval = Double.NegativeInfinity;
         foreach (var move in allValidMoves)
         {
-            var previousPosition = game.GetPiece(move.Key.Color, move.Key.GetPieceIdentifier(), move.Key.PieceNumber)
-                .Position;
             game.Board.Set(move.Key, move.p);
             localEval = Math.Max(localEval, -Evaluate(game, !color, depth-1, -bScore, -aScore));
             aScore = Math.Max(aScore, localEval);
-            game.Board.Set(move.Key, previousPosition);
+            game.Board.UndoLastMove();
             if (aScore >= bScore)
             {
                 break;
