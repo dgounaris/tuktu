@@ -28,7 +28,7 @@ public class PositionEvaluator
         return result;
     }
 
-    public double Evaluate(Game game, bool color, int depth, double aScore, double bScore)
+    private double Evaluate(Game game, bool color, int depth, double aScore, double bScore)
     {
         if (depth == 0 || (game.IsGameOver() != -1))
         {
