@@ -116,27 +116,27 @@ public static class PieceMoveParsingUtilities
         }
         else if (board.Get(MovementUtilities.GetPositionSW(position)) is not null)
         {
-            return $"/{board.Get(MovementUtilities.GetPositionSW(position))!.Print()}";
+            return $"{board.Get(MovementUtilities.GetPositionSW(position))!.Print()}/";
         }
         else if (board.Get(MovementUtilities.GetPositionW(position)) is not null)
         {
-            return $"-{board.Get(MovementUtilities.GetPositionW(position))!.Print()}";
+            return $"{board.Get(MovementUtilities.GetPositionW(position))!.Print()}-";
         }
         else if (board.Get(MovementUtilities.GetPositionNW(position)) is not null)
         {
-            return $"\\{board.Get(MovementUtilities.GetPositionNW(position))!.Print()}";
+            return $"{board.Get(MovementUtilities.GetPositionNW(position))!.Print()}\\";
         }
         else if (board.Get(MovementUtilities.GetPositionNE(position)) is not null)
         {
-            return $"{board.Get(MovementUtilities.GetPositionNE(position))!.Print()}/";
+            return $"/{board.Get(MovementUtilities.GetPositionNE(position))!.Print()}";
         }
         else if (board.Get(MovementUtilities.GetPositionE(position)) is not null)
         {
-            return $"{board.Get(MovementUtilities.GetPositionE(position))!.Print()}-";
+            return $"-{board.Get(MovementUtilities.GetPositionE(position))!.Print()}";
         }
         else if (board.Get(MovementUtilities.GetPositionSE(position)) is not null)
         {
-            return $"{board.Get(MovementUtilities.GetPositionSE(position))!.Print()}\\";
+            return $"\\{board.Get(MovementUtilities.GetPositionSE(position))!.Print()}";
         }
 
         throw new InvalidOperationException($"Could not translate position {position} into valid move");
