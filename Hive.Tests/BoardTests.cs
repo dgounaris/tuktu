@@ -99,25 +99,6 @@ public class BoardTests
         Assert.Equal(handPiecesWhite, board.GetPiecesInHandCount(true));
         Assert.Equal(handPiecesBlack, board.GetPiecesInHandCount(false));
     }
-
-    [Fact]
-    public void UndoLastMoveSucceeds()
-    {
-        var board = new Board();
-        board.Set(board.GetPiece(true, 'A', 1), new Position(0, 0));
-        board.Set(board.GetPiece(false, 'G', 1), new Position(0, 1));
-        board.Set(board.GetPiece(true, 'B', 2), new Position(0, 0));
-        board.GetPiece(false, 'G', 1).GetValidMoves(board);
-        board.Set(board.GetPiece(false, 'G', 1), new Position(0, -1));
-        
-        board.UndoLastMove();
-        board.UndoLastMove();
-        
-        Assert.Null(board.GetPiece(true, 'B', 2).Position);
-        Assert.Equal(1, board.GetPiece(false, 'G', 1).Position!.R);
-        Assert.Equal(0, board.GetPiece(false, 'G', 1).Position!.Q);
-        
-    }
     
     [Fact]
     public void LoadFromNotationWithBeetlesOnTopOfPiecesSucceeds()

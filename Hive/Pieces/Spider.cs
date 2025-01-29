@@ -52,9 +52,10 @@ public class Spider : IPiece
                 !board.IsPieceHiveConnectivitySignificant(this) &&
                 board.IsAdjacentPositionSlideReachable(currentPosition, candidatePosition))
             {
+                var previousPosition = this.Position;
                 board.Set(this, candidatePosition);
                 result.AddRange(GetValidMovesRecursive(candidatePosition, board, traversedPositions.Append(candidatePosition).ToList()));
-                board.UndoLastMove();
+                board.Set(this, previousPosition);
             }
         }
 

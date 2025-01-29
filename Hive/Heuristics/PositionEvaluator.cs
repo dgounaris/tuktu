@@ -7,49 +7,46 @@ public class PositionEvaluator
 {
     public List<PositionEvaluationResult> Evaluate(Game game, bool color, int maxDepth)
     {
-        if (maxDepth == 0 || (game.IsGameOver() != -1))
-        {
-            var score = CalculateEvaluation(game, true) - CalculateEvaluation(game, false);
-        }
-        
         List<PositionEvaluationResult> result = [];
         var allValidMoves = game.GetAllValidMoves(color).SelectMany(it => it.Value.Select(p => (it.Key, p)));
 
+        int alpha = int.MinValue;
+        int beta = int.MaxValue;
+        
         foreach (var move in allValidMoves)
         {
-            game.Board.Set(move.Key, move.p);
-            var localEval = Evaluate(game, !color, maxDepth - 1,
-                color ? Int32.MinValue : Int32.MaxValue, color ? Int32.MaxValue : Int32.MinValue);
-            game.Board.UndoLastMove();
+            game.PlayMove(move.Key, move.p);
+            var localEval = -Evaluate(game, !color, maxDepth - 1, -beta, -alpha);
+            game.UndoLastMove();
             
             result.Add(new PositionEvaluationResult
             {
-                Piece = game.GetPiece(move.Key.Color, move.Key.GetPieceIdentifier(), move.Key.PieceNumber),
+                Piece = game.Board.GetPiece(move.Key.Color, move.Key.GetPieceIdentifier(), move.Key.PieceNumber),
                 Move = PieceMoveParsingUtilities.PositionToMove(game.Board, move.p),
                 Score = localEval
             });
+            alpha = Math.Max(alpha, localEval);
         }
 
-        return color
-            ? result.OrderByDescending(it => it.Score).ToList()
-            : result.OrderBy(it => it.Score).ToList();
+        return result.OrderByDescending(it => it.Score).ToList();
     }
 
     private int Evaluate(Game game, bool color, int depth, int alpha, int beta)
     {
         if (depth == 0 || (game.IsGameOver() != -1))
         {
-            return CalculateEvaluation(game, true) - CalculateEvaluation(game, false);
+            var score = CalculateEvaluation(game, true) - CalculateEvaluation(game, false);
+            return color ? score : -score;
         }
         
         var allValidMoves = game.GetAllValidMoves(color).SelectMany(it => it.Value.Select(p => (it.Key, p)));
-        int localEval = Int32.MinValue;
+        int localEval = int.MinValue;
         foreach (var move in allValidMoves)
         {
-            game.Board.Set(move.Key, move.p);
-            localEval = -Evaluate(game, !color, depth-1, -beta, -alpha);
+            game.PlayMove(move.Key, move.p);
+            localEval = Math.Max(localEval, -Evaluate(game, !color, depth-1, -beta, -alpha));
             alpha = Math.Max(alpha, localEval);
-            game.Board.UndoLastMove();
+            game.UndoLastMove();
             if (alpha >= beta)
             {
                 break;
@@ -62,14 +59,17 @@ public class PositionEvaluator
     private int CalculateEvaluation(Game game, bool color)
     {
         var evaluation = 0;
-        var piecesOfColor = game.Board.GetAll(color);
         
         // Check if the queen is surrounded
         var queen = game.Board.GetPiece(color, 'Q', 1);
         if (queen.Position is not null)
         {
             var surroundingPieces = MovementUtilities.GetSurroundingPositions(queen.Position)
-                .Select(it => game.Board.Get(it)).Where(it => it is not null);
+                .Select(it => game.Board.Get(it)).Where(it => it is not null).ToList();
+            if (surroundingPieces.Count == 6)
+            {
+                return int.MinValue;
+            }
             var queenSurroundedScore = surroundingPieces.Aggregate(0, (sum, piece) => sum += piece!.Color == color ? 50 : 100);
             evaluation -= queenSurroundedScore;
         }

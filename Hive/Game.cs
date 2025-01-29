@@ -8,6 +8,7 @@ public class Game
     public Board Board;
     private int _currentPlayerIndex = -1;
     private int _currentTurn = -1;
+    private Stack<(IPiece, Position?, Position)> MoveHistory = new ();
     
     public Game()
     {
@@ -16,15 +17,20 @@ public class Game
     
     public void PlayMove(IPiece parsedPiece, Position parsedPosition)
     {
-        var realPiece = GetPiece(parsedPiece.Color, parsedPiece.GetPieceIdentifier(), parsedPiece.PieceNumber);
-            
-        if (realPiece.GetValidMoves(Board).Contains(parsedPosition) is false)
+        var boardPiece = Board.GetPiece(parsedPiece.Color, parsedPiece.GetPieceIdentifier(), parsedPiece.PieceNumber);
+        if (boardPiece.GetValidMoves(Board).Contains(parsedPosition) is false)
         {
             throw new InvalidOperationException($"Invalid move: piece {parsedPiece.Print()}, new position {parsedPosition}");
         }
             
-        var boardPiece = Board.GetPiece(parsedPiece.Color, parsedPiece.GetPieceIdentifier(), parsedPiece.PieceNumber);
+        MoveHistory.Push((boardPiece, boardPiece.Position, parsedPosition));
         Board.Set(boardPiece, parsedPosition);
+    }
+    
+    public void UndoLastMove()
+    {
+        var (piece, previousPosition, _) = MoveHistory.Pop();
+        Board.Set(piece, previousPosition);
     }
 
     public Dictionary<IPiece, List<Position>> GetAllValidMoves(bool color)
@@ -61,11 +67,6 @@ public class Game
     private string ParseToNotation()
     {
         return $":{(_currentPlayerIndex == 1 ? "b" : "w")}{Board.ParseToNotation()}";
-    }
-    
-    public IPiece GetPiece(bool color, char pieceId, int pieceNumber)
-    {
-        return Board.GetAll(color).Single(it => it.GetPieceIdentifier() == pieceId && it.PieceNumber == pieceNumber);
     }
 
     // returns -1 for no game over, otherwise returns the index of the winning player

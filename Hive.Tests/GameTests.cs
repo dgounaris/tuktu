@@ -130,6 +130,25 @@ public class GameTests
         Assert.Equal(1, board.Get(new Position(-1, -2 ))!.PieceNumber);
         Assert.False(board.Get(new Position(-1, -2 ))!.Color);
     }
+    
+    [Fact]
+    public void UndoLastMoveSucceeds()
+    {
+        var game = new Game();
+        var board = new Board();
+        game.Board = board;
+        game.PlayMove(board.GetPiece(true, 'A', 1), new Position(0, 0));
+        game.PlayMove(board.GetPiece(false, 'G', 1), new Position(0, 1));
+        game.PlayMove(board.GetPiece(true, 'B', 2), new Position(1, -1));
+        game.PlayMove(board.GetPiece(false, 'G', 1), new Position(0, -1));
+        
+        game.UndoLastMove();
+        game.UndoLastMove();
+        
+        Assert.Null(board.GetPiece(true, 'B', 2).Position);
+        Assert.Equal(1, board.GetPiece(false, 'G', 1).Position!.R);
+        Assert.Equal(0, board.GetPiece(false, 'G', 1).Position!.Q);
+    }
 
     [Theory]
     [InlineData(":wbA1+0-3bB2wA1-1-1wB1wB2bB1-1-2**@bA***@bG*@bQ**@bS**@wA***@wG*@wQ**@wS", true)]
