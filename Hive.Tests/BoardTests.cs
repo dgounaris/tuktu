@@ -99,6 +99,25 @@ public class BoardTests
         Assert.Equal(handPiecesWhite, board.GetPiecesInHandCount(true));
         Assert.Equal(handPiecesBlack, board.GetPiecesInHandCount(false));
     }
+
+    [Fact]
+    public void UndoLastMoveSucceeds()
+    {
+        var board = new Board();
+        board.Set(board.GetPiece(true, 'A', 1), new Position(0, 0));
+        board.Set(board.GetPiece(false, 'G', 1), new Position(0, 1));
+        board.Set(board.GetPiece(true, 'B', 2), new Position(0, 0));
+        board.GetPiece(false, 'G', 1).GetValidMoves(board);
+        board.Set(board.GetPiece(false, 'G', 1), new Position(0, -1));
+        
+        board.UndoLastMove();
+        board.UndoLastMove();
+        
+        Assert.Null(board.GetPiece(true, 'B', 2).Position);
+        Assert.Equal(1, board.GetPiece(false, 'G', 1).Position!.R);
+        Assert.Equal(0, board.GetPiece(false, 'G', 1).Position!.Q);
+        
+    }
     
     [Fact]
     public void LoadFromNotationWithBeetlesOnTopOfPiecesSucceeds()
@@ -155,6 +174,7 @@ public class BoardTests
     [InlineData(":wwA2+0-5wQ+1-2wB1+3-2bB1bA1+3-3wA1+3-4bS1-1-2**@bA*@bB***@bG*@bQ*@bS*@wA*@wB***@wG**@wS", false)]
     [InlineData(":wwS1+0-1wA2+0-5wQ+1-2bQ+1-4wA3+1-5wB2+2-3bA2+2-4wB1+3-2bB1bA1+3-3wA1+3-4bG1-1-1bS1-1-2*@bA*@bB**@bG*@bS***@wG*@wS", true)]
     [InlineData(":wwG2+0-1bA1+0-3wG1+1-1wA1+1-3wB1+2-2bB1+2-3wS1-1-1wA2-1-2**@bA*@bB***@bG*@bQ**@bS*@wA*@wB*@wG*@wQ*@wS", true)]
+    [InlineData(":wwB1wA1+0+0***@bA**@bB***@bG*@bQ**@bS**@wA*@wB***@wG*@wQ**@wS&grid=1", true)]
     public void IsHiveConnectedSucceeds(string notation, bool expectedResult)
     {
         var board = new Board();

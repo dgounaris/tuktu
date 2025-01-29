@@ -12,6 +12,7 @@ public class Board
         new Regex(":(w|b)((?:w|b)(?:A|G|B|Q|S)(?:1|2|3)?(?:(?:\\+|-)\\d+)?(?:(?:\\+|-)\\d+)?)*((?:\\*)*@(?:w|b)(?:A|G|B|Q|S))*", RegexOptions.Compiled);
     private static Regex _pieceInBoardRegex = new Regex("(w|b)(A|G|B|Q|S)(1|2|3)?((?:\\+|-)\\d+)?((?:\\+|-)\\d+)?", RegexOptions.Compiled);
     private static Regex _pieceInHandRegex = new Regex("(\\*)*@(w|b)(A|G|B|Q|S)", RegexOptions.Compiled);
+    private Stack<(IPiece, Position?, string)> MoveHistory = new ();
 
     private List<IPiece> _pieces;
 
@@ -23,9 +24,18 @@ public class Board
     public void Set(IPiece piece, Position? p)
     {
         var selectedPiece = _pieces.Single(it => it == piece);
+        MoveHistory.Push((piece, selectedPiece.Position, PieceMoveParsingUtilities.PositionToMove(this, p!)));
         _pieces.Remove(selectedPiece);
         selectedPiece.Position = p;
         _pieces.Add(selectedPiece);
+    }
+    
+    public void UndoLastMove()
+    {
+        var (piece, previousPosition, move) = MoveHistory.Pop();
+        _pieces.Remove(piece);
+        piece.Position = previousPosition;
+        _pieces.Add(piece);
     }
 
     public int GetPiecesOnBoardCount(bool color)
@@ -89,7 +99,11 @@ public class Board
 
     public bool IsHiveConnected()
     {
-        var onBoardPieces = _pieces.Where(it => it.Position is not null).ToList();
+        var onBoardPieces = _pieces.Where(it => it.Position is not null)
+            // stacked pieces can be considered as one piece
+            .GroupBy(it => it.Position)
+            .Select(it => it.Last())
+            .ToList();
         if (onBoardPieces.Count == 0)
         {
             return true;
@@ -98,21 +112,19 @@ public class Board
         var lookupPieces = new Queue<IPiece>();
         var discoveredPieces = new List<IPiece>();
         lookupPieces.Enqueue(onBoardPieces.First());
+        discoveredPieces.Add(onBoardPieces.First());
         while (lookupPieces.Count > 0)
         {
             var pivot = lookupPieces.Dequeue();
             foreach (var surroundingPlace in MovementUtilities.GetSurroundingPositions(pivot.Position!))
             {
-                var piecesOnSurroundingPlace = GetAll(surroundingPlace);
-                if (!piecesOnSurroundingPlace.Any() || discoveredPieces.Contains(piecesOnSurroundingPlace.First()))
+                var pieceOnSurroundingPlace = Get(surroundingPlace);
+                if (pieceOnSurroundingPlace is null || discoveredPieces.Contains(pieceOnSurroundingPlace))
                 {
                     continue;
                 }
-                foreach (var pieceOnSurroundingPlace in piecesOnSurroundingPlace)
-                {
-                    discoveredPieces.Add(pieceOnSurroundingPlace);
-                }
-                lookupPieces.Enqueue(piecesOnSurroundingPlace.First());
+                discoveredPieces.Add(pieceOnSurroundingPlace);
+                lookupPieces.Enqueue(pieceOnSurroundingPlace);
             }
         }
         
