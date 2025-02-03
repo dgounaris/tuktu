@@ -454,4 +454,38 @@ public class Board
 
         return pieces;
     }
+    
+    // todo test this
+    // todo pass perft tests
+    public Dictionary<IPiece, List<Position>> GetAllValidMoves(bool color)
+    {
+        Dictionary<IPiece, List<Position>> allValidMoves = new Dictionary<IPiece, List<Position>>();
+        
+        if (GetPiece(color, 'Q', 1).Position is null)
+        {
+            if (GetPiecesOnBoardCount(color) == 3)
+            {
+                var queen = GetPiece(color, 'Q', 1);
+                allValidMoves.Add(queen, queen.GetValidMoves(this).ToList());
+                return allValidMoves;
+            }
+            else
+            {
+                var uninitializedPieces = GetAll(color).Where(it => it.Position is null);
+                foreach (var piece in uninitializedPieces)
+                {
+                    allValidMoves.Add(piece, piece.GetValidMoves(this).ToList());
+                }
+
+                return allValidMoves;
+            }
+        }
+        
+        foreach (var piece in GetAll(color))
+        {
+            allValidMoves.Add(piece, piece.GetValidMoves(this).ToList());
+        }
+
+        return allValidMoves;
+    }
 }

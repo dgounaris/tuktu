@@ -14,7 +14,7 @@ public class EvaluateCommandHandler : ICommandHandler
             var color = command[(command.IndexOf(' ') + 1)..command.LastIndexOf(' ')];
             var depth = int.Parse(command[command.LastIndexOf(' ')..]);
             Console.WriteLine("Calculating evaluation...");
-            var result = _positionEvaluator.Evaluate(game, color == "w", depth);
+            var result = _positionEvaluator.Evaluate(game.Board, color == "w", depth);
             if (color == "w")
             {
                 result = result.OrderByDescending(it => it.Score).ToList();
