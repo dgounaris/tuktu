@@ -22,7 +22,7 @@ public class Board
 
     public void Set(IPiece piece, Position? p)
     {
-        var selectedPiece = _pieces.Single(it => it == piece);
+        var selectedPiece = _pieces.Single(it => it.Color == piece.Color && it.GetPieceIdentifier() == piece.GetPieceIdentifier() && it.PieceNumber == piece.PieceNumber);
         _pieces.Remove(selectedPiece);
         selectedPiece.Position = p;
         _pieces.Add(selectedPiece);
@@ -456,22 +456,35 @@ public class Board
     }
     
     // todo test this
-    // todo pass perft tests
     public Dictionary<IPiece, List<Position>> GetAllValidMoves(bool color)
     {
         Dictionary<IPiece, List<Position>> allValidMoves = new Dictionary<IPiece, List<Position>>();
+
+        // can't play queen as first move
+        if (GetPiecesOnBoardCount(color) == 0)
+        {
+            var uninitializedPieces = GetAll(color).Where(it => it.Position is null && it.GetPieceIdentifier() != 'Q')
+                .DistinctBy(it => it.GetPieceIdentifier());
+            foreach (var piece in uninitializedPieces)
+            {
+                allValidMoves.Add(piece, piece.GetValidMoves(this).ToList());
+            }
+
+            return allValidMoves;
+        }
         
         if (GetPiece(color, 'Q', 1).Position is null)
         {
-            if (GetPiecesOnBoardCount(color) == 3)
+            if (GetPiecesOnBoardCount(color) == 3) // must play queen on 4th move
             {
                 var queen = GetPiece(color, 'Q', 1);
                 allValidMoves.Add(queen, queen.GetValidMoves(this).ToList());
                 return allValidMoves;
             }
-            else
+            else // can't move pieces before placing queen
             {
-                var uninitializedPieces = GetAll(color).Where(it => it.Position is null);
+                var uninitializedPieces = GetAll(color).Where(it => it.Position is null)
+                    .DistinctBy(it => it.GetPieceIdentifier());;
                 foreach (var piece in uninitializedPieces)
                 {
                     allValidMoves.Add(piece, piece.GetValidMoves(this).ToList());

@@ -3,7 +3,7 @@ using Hive.Pieces;
 
 namespace Hive.Heuristics;
 
-public class PositionEvaluator
+/*public class PositionEvaluator
 {
     public List<PositionEvaluationResult> Evaluate(Board board, bool color, int maxDepth)
     {
@@ -92,4 +92,4 @@ public class PositionEvaluator
 
         return evaluation;
     }
-}
+}*/

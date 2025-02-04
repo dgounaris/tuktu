@@ -5,11 +5,11 @@ namespace Hive.Commands;
 public class EvaluateCommandHandler : ICommandHandler
 {
     public string CommandString { get; } = "e";
-    private PositionEvaluator _positionEvaluator = new PositionEvaluator();
+    //private PositionEvaluator _positionEvaluator = new PositionEvaluator();
 
     public void Handle(Game game, string command)
     {
-        try
+        /*try
         {
             var color = command[(command.IndexOf(' ') + 1)..command.LastIndexOf(' ')];
             var depth = int.Parse(command[command.LastIndexOf(' ')..]);
@@ -33,6 +33,6 @@ public class EvaluateCommandHandler : ICommandHandler
         {
             Console.WriteLine("Unknown error");
             Console.WriteLine(e.StackTrace);
-        }
+        }*/
     }
 }

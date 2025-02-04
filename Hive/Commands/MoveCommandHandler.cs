@@ -11,8 +11,7 @@ public class MoveCommandHandler : ICommandHandler
     {
         try
         {
-            var (parsedPiece, parsedPosition) = PieceMoveParsingUtilities.Parse(game.Board, command[(command.IndexOf(' ') + 1)..]);
-            game.PlayMove(parsedPiece, parsedPosition);
+            game.PlayMove(command[(command.IndexOf(' ') + 1)..]);
 
             Console.WriteLine("OK");
         }

@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using Hive.Movement;
 using Hive.Pieces;
 
 namespace Hive.Tests;
@@ -137,19 +138,42 @@ public class GameTests
         var game = new Game();
         var board = new Board();
         game.Board = board;
-        game.PlayMove(board.GetPiece(true, 'A', 1), new Position(0, 0));
-        game.PlayMove(board.GetPiece(false, 'G', 1), new Position(0, 1));
-        game.PlayMove(board.GetPiece(true, 'B', 2), new Position(1, -1));
-        game.PlayMove(board.GetPiece(false, 'G', 1), new Position(0, -1));
+        game.PlayMove("wA1 .");
+        game.PlayMove("bG1 wA1-");
+        game.PlayMove("wB2 \\wA1");
+        game.PlayMove("bQ1 bG1\\");
+        game.PlayMove("wA2 /wA1");
+        
+        game.UndoLastMove();
+        Assert.Null(board.GetPiece(true, 'A', 2).Position);
+        
+        game.PlayMove("bQ1 wA1\\");
+        game.PlayMove("wQ1 /wB2");
+        game.PlayMove("bG1 -wQ1");
+        game.PlayMove("wB2 wA1");
+        game.PlayMove("bA2 -bG1");
         
         game.UndoLastMove();
         game.UndoLastMove();
+        game.UndoLastMove();
         
-        Assert.Null(board.GetPiece(true, 'B', 2).Position);
-        Assert.Equal(1, board.GetPiece(false, 'G', 1).Position!.R);
-        Assert.Equal(0, board.GetPiece(false, 'G', 1).Position!.Q);
+        Assert.Equal(-1, board.GetPiece(true, 'B', 2).Position!.R);
+        Assert.Equal(0, board.GetPiece(true, 'B', 2).Position!.Q);
+        Assert.Equal(0, board.GetPiece(false, 'G', 1).Position!.R);
+        Assert.Equal(1, board.GetPiece(false, 'G', 1).Position!.Q);
     }
-
+    
+    [Fact]
+    public void UndoLastMoveWithEmptyMoveHistorySucceeds()
+    {
+        var game = new Game();
+        var board = new Board();
+        game.Board = board;
+        
+        game.UndoLastMove();
+        game.UndoLastMove();
+    }
+    
     [Theory]
     [InlineData(":wbA1+0-3bB2wA1-1-1wB1wB2bB1-1-2**@bA***@bG*@bQ**@bS**@wA***@wG*@wQ**@wS", true)]
     [InlineData(":wwB1+3-2bA1+3-3wA1+3-4bS1-1-2**@bA**@bB***@bG*@bQ*@bS**@wA*@wB***@wG*@wQ**@wS", false)]
@@ -200,5 +224,37 @@ public class GameTests
         var result = board.IsAdjacentPositionSlideReachable(new Position(qOrigin, rOrigin), new Position(qProposed, rProposed));
         
         Assert.Equal(expectedResult, result);
+    }
+    
+    [Theory]
+    [InlineData(0, 1)]
+    [InlineData(1, 4)]
+    [InlineData(2, 96)]
+    [InlineData(3, 1440)]
+    [InlineData(4, 21600)]
+    //[InlineData(5, 516240)]
+    public void GetAllValidMovesSucceeds(int depth, int expectedMoves)
+    {
+        var game = new Game();
+        game.StartGame();
+        var result = 1;
+        var expandedGames = new List<Game> { game };
+
+        while (depth > 0)
+        {
+            var validMoves = expandedGames.SelectMany(expandedGame => expandedGame.GetAllValidMoves().SelectMany(it => it.Value.Select(p => (it.Key, p)))
+                .Select(it => (expandedGame, (it.Key.Print(), PieceMoveParsingUtilities.PositionToMove(expandedGame.Board, it.Item2))))).ToList();
+            result = validMoves.Count;
+            expandedGames = validMoves.Select(it =>
+            {
+                var gameClone = new Game();
+                gameClone.LoadFromNotation(it.expandedGame.ParseToNotation());
+                gameClone.PlayMove($"{it.Item2.Item1} {it.Item2.Item2}");
+                return gameClone;
+            }).ToList();
+            depth--;
+        }
+
+        Assert.Equal(expectedMoves, result);
     }
 }
