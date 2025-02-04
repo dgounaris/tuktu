@@ -39,6 +39,18 @@ public class Game
         _currentTurn++;
     }
     
+    // todo use trustedPlayMove method instead of using Board set/unset
+    internal void TrustedPlayMove(string move)
+    {
+        var (parsedPiece, parsedPosition) = PieceMoveParsingUtilities.Parse(Board, move);
+        var boardPiece = Board.GetPiece(parsedPiece.Color, parsedPiece.GetPieceIdentifier(), parsedPiece.PieceNumber);
+        
+        MoveHistory.Push((boardPiece, boardPiece.Position, parsedPosition));
+        Board.Set(boardPiece, parsedPosition);
+        currentPlayerColor = !currentPlayerColor;
+        _currentTurn++;
+    }
+    
     public void UndoLastMove()
     {
         var popSucceeded = MoveHistory.TryPop(out var historyMove);
@@ -98,7 +110,6 @@ public class Game
         return -1;
     }
     
-    // todo test this
     public Dictionary<IPiece, List<Position>> GetAllValidMoves()
     {
         Dictionary<IPiece, List<Position>> allValidMoves = new Dictionary<IPiece, List<Position>>();
