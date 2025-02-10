@@ -8,12 +8,13 @@ public class AntTests
     public void GetValidMovesOnEmptyBoardSucceeds()
     {
         var board = new Board();
-        var piece = board.GetPiece(true, 'A', 1)!;
+        var piece = board.GetPiece(true, 'A', 1);
 
         var moves = piece.GetValidMoves(board).ToList();
         
         Assert.Single(moves);
-        Assert.Equal(new Position(0, 0), moves[0]);
+        Assert.Null(moves[0].PreviousPosition);
+        Assert.Equal(new Position(0, 0), moves[0].NewPosition);
     }
 
     [Theory]

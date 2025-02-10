@@ -10,10 +10,11 @@ public class SpiderTests
         var board = new Board();
         var piece = new Spider { Color = true, PieceNumber = 1 };
 
-        var moves = piece.GetValidMoves(board).ToList();
+        var moves = board.GetPiece(true, 'S', 1).GetValidMoves(board).ToList();
         
         Assert.Single(moves);
-        Assert.Equal(new Position(0, 0), moves[0]);
+        Assert.Null(moves[0].PreviousPosition);
+        Assert.Equal(new Position(0, 0), moves[0].NewPosition);
     }
 
     [Theory]

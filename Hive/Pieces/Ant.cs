@@ -14,21 +14,21 @@ public class Ant : IPiece
     public bool Color { get; set; }
     
     public int PieceNumber { get; set; }
-    public IEnumerable<Position> GetValidMoves(Board board)
+    public IEnumerable<Move> GetValidMoves(Board board)
     {
         if (Position is null)
         {
-            return board.GetInitializablePositions(Color);
+            return board.GetInitializablePositions(Color).Select(it => new Move { Piece = this, PreviousPosition = null, NewPosition = it });
         }
 
-        if (board.GetAll(Position).Count > 1)
+        if (board.GetAll(Position).Count > 1 || board.IsPieceHiveConnectivitySignificant(this))
         {
-            return new List<Position>();
+            return new List<Move>();
         }
         
         var validMoves = GetValidMovesRecursive(Position, board, new List<Position> { Position }).Distinct().ToList();
         validMoves.Remove(Position);
-        return validMoves;
+        return validMoves.Select(it => new Move { Piece = this, PreviousPosition = Position, NewPosition = it });;
     }
     
     private IEnumerable<Position> GetValidMovesRecursive(Position currentPosition, Board board, List<Position> traversedPositions)

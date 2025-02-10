@@ -15,18 +15,21 @@ public class Beetle : IPiece
     
     public int PieceNumber { get; set; }
 
-    public IEnumerable<Position> GetValidMoves(Board board)
+    public IEnumerable<Move> GetValidMoves(Board board)
     {
         if (Position is null)
         {
-            return board.GetInitializablePositions(Color);
+            return board.GetInitializablePositions(Color).Select(it => new Move { Piece = this, PreviousPosition = null, NewPosition = it });
         }
-        var candidatePositions = MovementUtilities.GetSurroundingPositions(Position!);
-        if (Position is null)
+
+        if (board.Get(Position) != this) // this beetle is not the top piece in case of stacked pieces
         {
-            return candidatePositions.Where(it => board.IsPositionInitializable(it, Color));
+            return new List<Move>();
         }
-        return candidatePositions.Where(it => IsEmptyPositionToMoveTo(board, it) || IsOccupiedPositionToJumpOn(board, it));
+        
+        var candidatePositions = MovementUtilities.GetSurroundingPositions(Position!);
+        return candidatePositions.Where(it => IsEmptyPositionToMoveTo(board, it) || IsOccupiedPositionToJumpOn(board, it))
+            .Select(it => new Move { Piece = this, PreviousPosition = Position, NewPosition = it });
     }
 
     private bool IsEmptyPositionToMoveTo(Board board, Position it)

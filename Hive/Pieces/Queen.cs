@@ -15,11 +15,11 @@ public class Queen : IPiece
     
     public int PieceNumber { get; set; }
     
-    public IEnumerable<Position> GetValidMoves(Board board)
+    public IEnumerable<Move> GetValidMoves(Board board)
     {
         if (Position is null)
         {
-            return board.GetInitializablePositions(Color);
+            return board.GetInitializablePositions(Color).Select(it => new Move { Piece = this, PreviousPosition = null, NewPosition = it });
         }
         var candidatePositions = MovementUtilities.GetSurroundingPositions(Position!);
 
@@ -27,6 +27,7 @@ public class Queen : IPiece
                                               board.GetAll(Position).Count == 1 &&
                                               board.IsPositionConnectedToHive(it).Count > 1 && // should "connect" to the piece and also to the rest of hive 
                                               !board.IsPieceHiveConnectivitySignificant(this) &&
-                                              board.IsAdjacentPositionSlideReachable(Position, it));
+                                              board.IsAdjacentPositionSlideReachable(Position, it))
+            .Select(it => new Move { Piece = this, PreviousPosition = Position, NewPosition = it });
     }
 }

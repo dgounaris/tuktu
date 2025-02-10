@@ -1,6 +1,9 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using Hive.Movement;
 using Hive.Pieces;
+
+[assembly:InternalsVisibleTo("Hive.Tests")]
 
 namespace Hive;
 
@@ -11,7 +14,7 @@ public class Game
     public Board Board;
     private bool currentPlayerColor = true;
     private int _currentTurn = -1;
-    private Stack<(IPiece, Position?, Position)> MoveHistory = new ();
+    private Stack<Move> MoveHistory = new ();
     
     public Game()
     {
@@ -23,30 +26,63 @@ public class Game
         currentPlayerColor = true;
         _currentTurn = 0;
     }
+
+    public string PrintHistory()
+    {
+        return string.Join(", ", MoveHistory.Reverse().Select(it => $"{it.Piece.Print()} {it.PreviousPosition} {it.NewPosition}"));
+    }
     
     public void PlayMove(string move)
     {
         var (parsedPiece, parsedPosition) = PieceMoveParsingUtilities.Parse(Board, move);
         var boardPiece = Board.GetPiece(parsedPiece.Color, parsedPiece.GetPieceIdentifier(), parsedPiece.PieceNumber);
-        if (boardPiece.GetValidMoves(Board).Contains(parsedPosition) is false) // todo should check against 'board.GetAllValidMoves' instead
+        var moveObj = new Move
+        {
+            Piece = boardPiece,
+            PreviousPosition = boardPiece.Position,
+            NewPosition = parsedPosition
+        };
+        if (boardPiece.Color != currentPlayerColor)
+        {
+            throw new InvalidOperationException("Invalid move: piece color does not match current player");
+        }
+        if (GetAllValidMoves().Contains(moveObj) is false)
         {
             throw new InvalidOperationException($"Invalid move: piece {parsedPiece.Print()}, new position {parsedPosition}");
         }
         
-        MoveHistory.Push((boardPiece, boardPiece.Position, parsedPosition));
+        MoveHistory.Push(moveObj);
+        
         Board.Set(boardPiece, parsedPosition);
         currentPlayerColor = !currentPlayerColor;
         _currentTurn++;
     }
     
-    // todo use trustedPlayMove method instead of using Board set/unset
-    internal void TrustedPlayMove(string move)
+    internal void TrustedPlayMove(Move move)
     {
-        var (parsedPiece, parsedPosition) = PieceMoveParsingUtilities.Parse(Board, move);
-        var boardPiece = Board.GetPiece(parsedPiece.Color, parsedPiece.GetPieceIdentifier(), parsedPiece.PieceNumber);
+        MoveHistory.Push(move);
+
+        if (move.MoveType != MoveType.Pass)
+        {
+            Board.Set(move.Piece, move.NewPosition);
+        }
+
+        currentPlayerColor = !currentPlayerColor;
+        _currentTurn++;
+    }
+    
+    internal void TrustedPlayMove(IPiece piece, Position newPosition)
+    {
+        var moveObj = new Move
+        {
+            Piece = piece,
+            PreviousPosition = piece.Position,
+            NewPosition = newPosition
+        };
         
-        MoveHistory.Push((boardPiece, boardPiece.Position, parsedPosition));
-        Board.Set(boardPiece, parsedPosition);
+        MoveHistory.Push(moveObj);
+        
+        Board.Set(piece, newPosition);
         currentPlayerColor = !currentPlayerColor;
         _currentTurn++;
     }
@@ -58,8 +94,12 @@ public class Game
         {
             return;
         }
-        var (piece, previousPosition, _) = historyMove;
-        Board.Set(piece, previousPosition);
+
+        if (historyMove!.MoveType != MoveType.Pass)
+        {
+            Board.Set(historyMove.Piece, historyMove.PreviousPosition);
+        }
+
         currentPlayerColor = !currentPlayerColor;
         _currentTurn--;
     }
@@ -110,18 +150,19 @@ public class Game
         return -1;
     }
     
-    public Dictionary<IPiece, List<Position>> GetAllValidMoves()
+    public List<Move> GetAllValidMoves()
     {
-        Dictionary<IPiece, List<Position>> allValidMoves = new Dictionary<IPiece, List<Position>>();
+        var allValidMoves = new List<Move>();
 
         // can't play queen as first move
         if (Board.GetPiecesOnBoardCount(currentPlayerColor) == 0)
         {
             var uninitializedPieces = Board.GetAll(currentPlayerColor).Where(it => it.Position is null && it.GetPieceIdentifier() != 'Q')
+                .OrderBy(it => it.PieceNumber) // prioritize lower piece number
                 .DistinctBy(it => it.GetPieceIdentifier());
             foreach (var piece in uninitializedPieces)
             {
-                allValidMoves.Add(piece, piece.GetValidMoves(Board).ToList());
+                allValidMoves.AddRange(piece.GetValidMoves(Board).ToList());
             }
 
             return allValidMoves;
@@ -132,32 +173,46 @@ public class Game
             if (Board.GetPiecesOnBoardCount(currentPlayerColor) == 3) // must play queen on 4th move
             {
                 var queen = Board.GetPiece(currentPlayerColor, 'Q', 1);
-                allValidMoves.Add(queen, queen.GetValidMoves(Board).ToList());
+                allValidMoves.AddRange(queen.GetValidMoves(Board).ToList());
                 return allValidMoves;
             }
             else // can't move pieces before placing queen
             {
                 var uninitializedPieces = Board.GetAll(currentPlayerColor).Where(it => it.Position is null)
+                    .OrderBy(it => it.PieceNumber) // prioritize lower piece number
                     .DistinctBy(it => it.GetPieceIdentifier());
                 ;
                 foreach (var piece in uninitializedPieces)
                 {
-                    allValidMoves.Add(piece, piece.GetValidMoves(Board).ToList());
+                    allValidMoves.AddRange(piece.GetValidMoves(Board).ToList());
                 }
 
                 return allValidMoves;
             }
         }
-        else if (IsGameOver() != -1)
+        
+        if (IsGameOver() != -1)
         {
             return allValidMoves;
         }
         
-        foreach (var piece in Board.GetAll(currentPlayerColor))
+        foreach (var piece in Board.GetAll(currentPlayerColor).Where(it => it.Position is not null))
         {
-            allValidMoves.Add(piece, piece.GetValidMoves(Board).ToList());
+            allValidMoves.AddRange(piece.GetValidMoves(Board).ToList());
+        }
+        
+        foreach (var piece in Board.GetAll(currentPlayerColor).Where(it => it.Position is null)
+                     .OrderBy(it => it.PieceNumber) // prioritize lower piece number
+                     .DistinctBy(it => it.GetPieceIdentifier()))
+        {
+            allValidMoves.AddRange(piece.GetValidMoves(Board).ToList());
         }
 
+        if (allValidMoves.Count == 0)
+        {
+            allValidMoves.Add(new Move { MoveType = MoveType.Pass });
+        }
+        
         return allValidMoves;
     }
 }

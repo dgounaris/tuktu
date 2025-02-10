@@ -8,7 +8,7 @@ public class ImportCommandHandler : ICommandHandler
     {
         try
         {
-            game.Board.LoadFromNotation(command[(command.IndexOf(' ') + 1)..]);
+            game.LoadFromNotation(command[(command.IndexOf(' ') + 1)..]);
             game.Print();
         }
         catch (Exception e)

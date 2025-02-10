@@ -1,11 +1,19 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics;
+using System.Drawing;
 using Hive.Movement;
-using Hive.Pieces;
+using Xunit.Abstractions;
 
 namespace Hive.Tests;
 
 public class GameTests
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public GameTests(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     [Theory]
     [InlineData(":wwB2+0+0bG2+0-1bG1+0-2bA1+0-3bB1wB1+1-1wQ+1-2wG2+1-4bA2+2-2wA1+2-3wA2+2-4wG1+3-3wA3+3-4*@bA*@bB*@bG*@bQ**@bS*@wG**@wS", -1)]
     [InlineData(":wwB2+0+0bG2+0-1bG1+0-2bA1+0-3bB1wB1+1-1wQ+1-2wG2+1-4bA2+2-2wA1+2-3wA2+2-4wG1+3-3wA3+3-4bQ+4-4*@bA*@bB*@bG**@bS*@wG**@wS", -1)]
@@ -140,25 +148,26 @@ public class GameTests
         game.Board = board;
         game.PlayMove("wA1 .");
         game.PlayMove("bG1 wA1-");
-        game.PlayMove("wB2 \\wA1");
+        game.PlayMove("wB1 \\wA1");
         game.PlayMove("bQ1 bG1\\");
         game.PlayMove("wA2 /wA1");
         
         game.UndoLastMove();
         Assert.Null(board.GetPiece(true, 'A', 2).Position);
         
+        game.PlayMove("wA2 /wA1");
         game.PlayMove("bQ1 wA1\\");
-        game.PlayMove("wQ1 /wB2");
+        game.PlayMove("wQ1 /wB1");
         game.PlayMove("bG1 -wQ1");
-        game.PlayMove("wB2 wA1");
-        game.PlayMove("bA2 -bG1");
+        game.PlayMove("wB1 wA1");
+        game.PlayMove("bA1 -bG1");
         
         game.UndoLastMove();
         game.UndoLastMove();
         game.UndoLastMove();
         
-        Assert.Equal(-1, board.GetPiece(true, 'B', 2).Position!.R);
-        Assert.Equal(0, board.GetPiece(true, 'B', 2).Position!.Q);
+        Assert.Equal(-1, board.GetPiece(true, 'B', 1).Position!.R);
+        Assert.Equal(0, board.GetPiece(true, 'B', 1).Position!.Q);
         Assert.Equal(0, board.GetPiece(false, 'G', 1).Position!.R);
         Assert.Equal(1, board.GetPiece(false, 'G', 1).Position!.Q);
     }
@@ -227,34 +236,60 @@ public class GameTests
     }
     
     [Theory]
-    [InlineData(0, 1)]
     [InlineData(1, 4)]
     [InlineData(2, 96)]
     [InlineData(3, 1440)]
     [InlineData(4, 21600)]
-    //[InlineData(5, 516240)]
-    public void GetAllValidMovesSucceeds(int depth, int expectedMoves)
+    [InlineData(5, 516240)]
+    [InlineData(6, 12219480)]
+    [InlineData(7, 181641900)]
+    [InlineData(8, 2657392800)]
+    public void GetAllValidMovesSucceeds(int depth, long expectedMoves, string startingPosition = "")
     {
         var game = new Game();
-        game.StartGame();
-        var result = 1;
-        var expandedGames = new List<Game> { game };
-
-        while (depth > 0)
+        if (startingPosition != string.Empty)
         {
-            var validMoves = expandedGames.SelectMany(expandedGame => expandedGame.GetAllValidMoves().SelectMany(it => it.Value.Select(p => (it.Key, p)))
-                .Select(it => (expandedGame, (it.Key.Print(), PieceMoveParsingUtilities.PositionToMove(expandedGame.Board, it.Item2))))).ToList();
-            result = validMoves.Count;
-            expandedGames = validMoves.Select(it =>
-            {
-                var gameClone = new Game();
-                gameClone.LoadFromNotation(it.expandedGame.ParseToNotation());
-                gameClone.PlayMove($"{it.Item2.Item1} {it.Item2.Item2}");
-                return gameClone;
-            }).ToList();
-            depth--;
+            game.LoadFromNotation(startingPosition);
+        }
+        else
+        {
+            game.StartGame();
         }
 
-        Assert.Equal(expectedMoves, result);
+        var result = new List<(string, Move)>();
+
+        var stopwatch = Stopwatch.StartNew();
+        result = GetAllValidMovesInternal(depth-1, game);
+        stopwatch.Stop();
+        
+        _testOutputHelper.WriteLine($"Time: {stopwatch}");
+        
+        Assert.Equal(expectedMoves, result.Count);
+    }
+
+    private List<(string gameHistory, Move it)> GetAllValidMovesInternal(int depth, Game game)
+    {
+        if (depth == 0)
+        {
+            var gameHistory = game.PrintHistory();
+            return game.GetAllValidMoves().Select(it => (gameHistory, it)).ToList();
+        }
+        
+        if (game.IsGameOver() != -1)
+        {
+            return new List<(string, Move)>();
+        }
+
+        var result = new List<(string, Move)>();
+        var validMoves = game.GetAllValidMoves();
+        
+        foreach (var move in validMoves)
+        {
+            game.TrustedPlayMove(move);
+            result.AddRange(GetAllValidMovesInternal(depth - 1, game));
+            game.UndoLastMove();
+        }
+
+        return result;
     }
 }

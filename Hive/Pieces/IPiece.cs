@@ -1,4 +1,6 @@
-﻿namespace Hive.Pieces;
+﻿using Hive.Movement;
+
+namespace Hive.Pieces;
 
 public interface IPiece
 {
@@ -11,7 +13,7 @@ public interface IPiece
     // 1st, 2nd, ... player's piece
     public int PieceNumber { get; set; }
 
-    public IEnumerable<Position> GetValidMoves(Board board);
+    public IEnumerable<Move> GetValidMoves(Board board);
 
     public string Print()
     {
