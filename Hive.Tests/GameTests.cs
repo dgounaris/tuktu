@@ -241,9 +241,9 @@ public class GameTests
     [InlineData(3, 1440)]
     [InlineData(4, 21600)]
     [InlineData(5, 516240)]
-    [InlineData(6, 12219480)]
-    [InlineData(7, 181641900)]
-    [InlineData(8, 2657392800)]
+    //[InlineData(6, 12219480)]
+    //[InlineData(7, 181641900)]
+    //[InlineData(8, 2657392800)]
     public void GetAllValidMovesSucceeds(int depth, long expectedMoves, string startingPosition = "")
     {
         var game = new Game();

@@ -35,8 +35,10 @@ public class Beetle : IPiece
     private bool IsEmptyPositionToMoveTo(Board board, Position it)
     {
         return board.Get(it) is null &&
-               board.IsPositionConnectedToHive(it).Count > 1 && // should "connect" to the piece and also to the rest of hive 
-               !board.IsPieceHiveConnectivitySignificant(this) &&
+               (
+                   board.IsPositionConnectedToHive(it).Count > 1 || // should "connect" to the piece and also to the rest of hive
+                   (board.IsPositionConnectedToHive(it).Count == 1 && board.Get(Position!) == this) // but if the beetle is on top of a piece, the new position might only have 1 neighbour
+               ) && !board.IsPieceHiveConnectivitySignificant(this) &&
                (board.IsAdjacentPositionSlideReachable(Position, it) || board.GetAll(Position).Count > 1);
     }
     
