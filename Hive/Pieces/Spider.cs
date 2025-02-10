@@ -14,20 +14,21 @@ public class Spider : IPiece
     public bool Color { get; set; }
     
     public int PieceNumber { get; set; }
-    public IEnumerable<Position> GetValidMoves(Board board)
+    public IEnumerable<Move> GetValidMoves(Board board)
     {
         var originalPosition = Position;
         if (Position is null)
         {
-            return board.GetInitializablePositions(Color);
+            return board.GetInitializablePositions(Color).Select(it => new Move { Piece = this, PreviousPosition = null, NewPosition = it });;
         }
 
         if (board.GetAll(Position).Count > 1)
         {
-            return new List<Position>();
+            return new List<Move>();
         }
         
-        return GetValidMovesRecursive(Position, board, new List<Position> { Position }).Distinct();
+        return GetValidMovesRecursive(Position, board, new List<Position> { Position }).Distinct()
+            .Select(it => new Move { Piece = this, PreviousPosition = Position, NewPosition = it });;
     }
 
     private IEnumerable<Position> GetValidMovesRecursive(Position currentPosition, Board board, List<Position> traversedPositions)
