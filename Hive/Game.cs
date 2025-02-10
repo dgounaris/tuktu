@@ -15,6 +15,7 @@ public class Game
     private bool currentPlayerColor = true;
     private int _currentTurn = -1;
     private Stack<Move> MoveHistory = new ();
+    private bool isGameStarted = false;
     
     public Game()
     {
@@ -23,10 +24,16 @@ public class Game
 
     public void StartGame()
     {
+        if (isGameStarted)
+        {
+            throw new InvalidOperationException("Game already started");
+        }
+        
         currentPlayerColor = true;
         _currentTurn = 0;
+        isGameStarted = true;
     }
-
+    
     public string PrintHistory()
     {
         return string.Join(", ", MoveHistory.Reverse().Select(it => $"{it.Piece.Print()} {it.PreviousPosition} {it.NewPosition}"));
@@ -126,6 +133,39 @@ public class Game
         Board.LoadFromNotation(notationMatch.Value);
     }
 
+    public void LoadFromUHP(string uhpCommand)
+    {
+        var commandParts = uhpCommand.Split(';');
+        if (commandParts[0] != "Base")
+        {
+            throw new InvalidOperationException($"Unsupported game type {commandParts[0]}");
+        }
+
+        StartGame();
+
+        if (commandParts.Length >= 3)
+        {
+            var parsedCurrentPlayerColor = commandParts[2].StartsWith("White");
+            var parsedCurrentTurn = int.Parse(commandParts[2].Substring(
+                commandParts[2].IndexOf('[') + 1,
+                commandParts[2].IndexOf(']') - commandParts[2].IndexOf('[') - 1));
+            foreach (var commandPart in commandParts.Skip(3))
+            {
+                PlayMove(commandPart);
+            }
+
+            if (_currentTurn != parsedCurrentTurn)
+            {
+                throw new InvalidOperationException($"Invalid turn passed in command: {parsedCurrentTurn}");
+            }
+
+            if (parsedCurrentPlayerColor != currentPlayerColor)
+            {
+                throw new InvalidOperationException($"Invalid active player passed in command: {parsedCurrentPlayerColor}");
+            }
+        }
+    }
+
     // returns -1 for no game over, otherwise returns the index of the winning player
     public int IsGameOver()
     {
@@ -153,6 +193,11 @@ public class Game
     public List<Move> GetAllValidMoves()
     {
         var allValidMoves = new List<Move>();
+        
+        if (IsGameOver() != -1)
+        {
+            return allValidMoves;
+        }
 
         // can't play queen as first move
         if (Board.GetPiecesOnBoardCount(currentPlayerColor) == 0)
@@ -189,11 +234,6 @@ public class Game
 
                 return allValidMoves;
             }
-        }
-        
-        if (IsGameOver() != -1)
-        {
-            return allValidMoves;
         }
         
         foreach (var piece in Board.GetAll(currentPlayerColor).Where(it => it.Position is not null))
