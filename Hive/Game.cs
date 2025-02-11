@@ -30,7 +30,7 @@ public class Game
         }
         
         currentPlayerColor = true;
-        _currentTurn = 0;
+        _currentTurn = 1;
         isGameStarted = true;
     }
     
@@ -136,7 +136,7 @@ public class Game
     public void LoadFromUHP(string uhpCommand)
     {
         var commandParts = uhpCommand.Split(';');
-        if (commandParts[0] != "Base")
+        if (commandParts[0] != "Base" && commandParts[0] != string.Empty)
         {
             throw new InvalidOperationException($"Unsupported game type {commandParts[0]}");
         }
@@ -154,7 +154,7 @@ public class Game
                 PlayMove(commandPart);
             }
 
-            if (_currentTurn != parsedCurrentTurn)
+            if ((_currentTurn+1)/2 != parsedCurrentTurn) // +1 to avoid floating point inaccuracy
             {
                 throw new InvalidOperationException($"Invalid turn passed in command: {parsedCurrentTurn}");
             }
