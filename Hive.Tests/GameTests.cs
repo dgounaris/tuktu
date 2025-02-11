@@ -215,6 +215,20 @@ public class GameTests
     }
 
     [Theory]
+    [InlineData("Base;NotStarted;White[1]", 0)]
+    [InlineData("Base;InProgress;White[3];wS1;bG1 -wS1;wA1 wS1/;bG2 /bG1", 4)]
+    [InlineData("Base", 0)]
+    [InlineData("", 0)]
+    public void LoadFromUHPSucceeds(string notation, int expectedPiecesOnBoard)
+    {
+        var game = new Game();
+        
+        game.LoadFromUHP(notation);
+        
+        Assert.Equal(expectedPiecesOnBoard, game.Board.GetPiecesOnBoardCount(true) + game.Board.GetPiecesOnBoardCount(false));
+    }
+    
+    [Theory]
     [InlineData(0, -1, 0, 0, false)]
     [InlineData(0, 0, 0, -1, false)]
     [InlineData(2, -1, 1, 0, false)]

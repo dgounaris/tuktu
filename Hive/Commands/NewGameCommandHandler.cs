@@ -1,18 +1,16 @@
-﻿using Hive.Movement;
-using Hive.Pieces;
-
 namespace Hive.Commands;
 
-public class MoveCommandHandler : ICommandHandler
+public class NewGameCommandHandler : ICommandHandler
 {
-    public string CommandString { get; } = "m";
-
+    public string CommandString { get; } = "newgame";
+    
     public void Handle(Game game, string command)
     {
         try
         {
-            game.PlayMove(command[(command.IndexOf(' ') + 1)..]);
-
+            var newGameSetup = command.IndexOf(' ') != -1 ?
+                command[(command.IndexOf(' ') + 1)..] : string.Empty;
+            game.LoadFromUHP(newGameSetup);
             Console.WriteLine("ok");
         }
         catch (Exception e)
