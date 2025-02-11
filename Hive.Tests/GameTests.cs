@@ -144,8 +144,7 @@ public class GameTests
     public void UndoLastMoveSucceeds()
     {
         var game = new Game();
-        var board = new Board();
-        game.Board = board;
+        game.StartGame();
         game.PlayMove("wA1 .");
         game.PlayMove("bG1 wA1-");
         game.PlayMove("wB1 \\wA1");
@@ -153,7 +152,7 @@ public class GameTests
         game.PlayMove("wA2 /wA1");
         
         game.UndoLastMove();
-        Assert.Null(board.GetPiece(true, 'A', 2).Position);
+        Assert.Null(game.Board.GetPiece(true, 'A', 2).Position);
         
         game.PlayMove("wA2 /wA1");
         game.PlayMove("bQ1 wA1\\");
@@ -166,10 +165,10 @@ public class GameTests
         game.UndoLastMove();
         game.UndoLastMove();
         
-        Assert.Equal(-1, board.GetPiece(true, 'B', 1).Position!.R);
-        Assert.Equal(0, board.GetPiece(true, 'B', 1).Position!.Q);
-        Assert.Equal(0, board.GetPiece(false, 'G', 1).Position!.R);
-        Assert.Equal(1, board.GetPiece(false, 'G', 1).Position!.Q);
+        Assert.Equal(-1, game.Board.GetPiece(true, 'B', 1).Position!.R);
+        Assert.Equal(0, game.Board.GetPiece(true, 'B', 1).Position!.Q);
+        Assert.Equal(0, game.Board.GetPiece(false, 'G', 1).Position!.R);
+        Assert.Equal(1, game.Board.GetPiece(false, 'G', 1).Position!.Q);
     }
     
     [Fact]

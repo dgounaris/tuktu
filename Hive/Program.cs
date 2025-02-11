@@ -6,9 +6,10 @@ using Hive.Commands;
 var commandHandlers = new List<ICommandHandler>
 {
     new PrintCommandHandler(),
-    new MoveCommandHandler(),
+    new PlayCommandHandler(),
     new ImportCommandHandler(),
-    new EvaluateCommandHandler()
+    new EvaluateCommandHandler(),
+    new NewGameCommandHandler()
 };
 
 var game = new Game();
@@ -18,7 +19,7 @@ while (game.IsGameOver() == -1)
     var command = Console.ReadLine();
     try
     {
-        var commandId = command?[0].ToString();
+        var commandId = command?.Split(' ')[0];
         var handler = commandHandlers.FirstOrDefault(c => c.CommandString == commandId);
         if (handler is not null)
         {
