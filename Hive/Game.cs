@@ -63,7 +63,7 @@ public class Game
         }
         
         MoveHistory.Push(moveObj);
-        g
+        
         Board.Set(boardPiece, parsedPosition);
         currentPlayerColor = !currentPlayerColor;
         _currentTurn++;

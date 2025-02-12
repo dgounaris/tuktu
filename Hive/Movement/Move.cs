@@ -24,7 +24,7 @@ public record Move
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(this.Piece.GetHashCode(), this.PreviousPosition.GetHashCode(), this.NewPosition.GetHashCode());
+        return HashCode.Combine(this.Piece.GetHashCode(), this.PreviousPosition?.GetHashCode(), this.NewPosition.GetHashCode());
     }
 }
 
