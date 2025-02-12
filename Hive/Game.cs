@@ -15,7 +15,6 @@ public class Game
     private bool currentPlayerColor = true;
     private int _currentTurn = -1;
     private Stack<Move> MoveHistory = new ();
-    private bool isGameStarted = false;
     
     public Game()
     {
@@ -24,14 +23,13 @@ public class Game
 
     public void StartGame()
     {
-        if (isGameStarted)
+        if (_currentTurn > -1)
         {
             throw new InvalidOperationException("Game already started");
         }
         
         currentPlayerColor = true;
         _currentTurn = 1;
-        isGameStarted = true;
     }
     
     public string PrintHistory()
@@ -41,13 +39,19 @@ public class Game
     
     public void PlayMove(string move)
     {
+        if (_currentTurn == -1)
+        {
+            throw new InvalidOperationException("Game not started");
+        }
+        
         var (parsedPiece, parsedPosition) = PieceMoveParsingUtilities.Parse(Board, move);
         var boardPiece = Board.GetPiece(parsedPiece.Color, parsedPiece.GetPieceIdentifier(), parsedPiece.PieceNumber);
         var moveObj = new Move
         {
             Piece = boardPiece,
             PreviousPosition = boardPiece.Position,
-            NewPosition = parsedPosition
+            NewPosition = parsedPosition,
+            MoveString = move
         };
         if (boardPiece.Color != currentPlayerColor)
         {
@@ -84,7 +88,8 @@ public class Game
         {
             Piece = piece,
             PreviousPosition = piece.Position,
-            NewPosition = newPosition
+            NewPosition = newPosition,
+            MoveString = $"{piece.Print()} {piece.Position} {newPosition}"
         };
         
         MoveHistory.Push(moveObj);
@@ -115,6 +120,23 @@ public class Game
     {
         Board.Print();
         Console.WriteLine("Board notation representation: " + ParseToNotation());
+    }
+
+    public void PrintUHP()
+    {
+        if (_currentTurn == -1)
+        {
+            throw new InvalidOperationException("Game not started");
+        }
+        var printText = string.Join(';',
+            "Base",
+            _currentTurn > 1 ? "InProgress" : "NotStarted",
+            _currentTurn % 2 == 1 ? $"White[{_currentTurn %2}]" : $"Black[{_currentTurn %2}]");
+        if (MoveHistory.Count != 0)
+        {
+            printText += $";{string.Join(';', MoveHistory.Reverse().Select(it => it.MoveString).ToArray())}";
+        }
+        Console.WriteLine(printText);
     }
 
     public string ParseToNotation()
