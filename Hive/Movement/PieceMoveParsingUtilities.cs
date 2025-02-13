@@ -107,7 +107,7 @@ public static class PieceMoveParsingUtilities
         // on empty board
         if (board.GetPiecesOnBoardCount(true) == 0 && board.GetPiecesOnBoardCount(false) == 0)
         {
-            return ".";
+            return string.Empty;
         }
         // on top of other piece
         if (board.Get(position) is not null)

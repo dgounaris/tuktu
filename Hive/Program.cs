@@ -10,7 +10,8 @@ var commandHandlers = new List<ICommandHandler>
     new ImportCommandHandler(),
     new EvaluateCommandHandler(),
     new NewGameCommandHandler(),
-    new PassCommandHandler()
+    new PassCommandHandler(),
+    new ValidMovesCommandHandler()
 };
 
 var game = new Game();
