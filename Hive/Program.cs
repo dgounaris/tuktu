@@ -9,7 +9,8 @@ var commandHandlers = new List<ICommandHandler>
     new PlayCommandHandler(),
     new ImportCommandHandler(),
     new EvaluateCommandHandler(),
-    new NewGameCommandHandler()
+    new NewGameCommandHandler(),
+    new PassCommandHandler()
 };
 
 var game = new Game();

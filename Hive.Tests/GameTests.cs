@@ -170,6 +170,16 @@ public class GameTests
         Assert.Equal(0, game.Board.GetPiece(false, 'G', 1).Position!.R);
         Assert.Equal(1, game.Board.GetPiece(false, 'G', 1).Position!.Q);
     }
+
+    [Fact]
+    public void PassPlayMoveSucceeds()
+    {
+        var game = new Game();
+        game.StartGame();
+        
+        game.PlayMove("pass");
+        game.PlayMove("bS1");
+    }
     
     [Fact]
     public void UndoLastMoveWithEmptyMoveHistorySucceeds()
