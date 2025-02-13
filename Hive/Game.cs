@@ -287,7 +287,7 @@ public class Game
 
         if (allValidMoves.Count == 0)
         {
-            allValidMoves.Add(new Move { MoveType = MoveType.Pass });
+            allValidMoves.Add(new Move { MoveType = MoveType.Pass, MoveString = "pass" });
         }
         
         return allValidMoves;
