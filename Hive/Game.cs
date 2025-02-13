@@ -146,7 +146,7 @@ public class Game
         var printText = string.Join(';',
             "Base",
             _currentTurn > 1 ? "InProgress" : "NotStarted",
-            _currentTurn % 2 == 1 ? $"White[{_currentTurn %2}]" : $"Black[{_currentTurn %2}]");
+            _currentTurn % 2 == 1 ? $"White[{(_currentTurn+1) / 2}]" : $"Black[{(_currentTurn+1) / 2}]");
         if (MoveHistory.Count != 0)
         {
             printText += $";{string.Join(';', MoveHistory.Reverse().Select(it => it.MoveString).ToArray())}";
