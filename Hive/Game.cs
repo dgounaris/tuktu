@@ -43,6 +43,21 @@ public class Game
         {
             throw new InvalidOperationException("Game not started");
         }
+
+        if (move == "pass") // todo possibly validate that pass is indeed the only move
+        {
+            var movePassObj = new Move
+            {
+                MoveType = MoveType.Pass,
+                MoveString = "pass"
+            };
+            
+            MoveHistory.Push(movePassObj);
+            
+            currentPlayerColor = !currentPlayerColor;
+            _currentTurn++;
+            return;
+        }
         
         var (parsedPiece, parsedPosition) = PieceMoveParsingUtilities.Parse(Board, move);
         var boardPiece = Board.GetPiece(parsedPiece.Color, parsedPiece.GetPieceIdentifier(), parsedPiece.PieceNumber);
