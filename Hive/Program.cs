@@ -11,7 +11,8 @@ var commandHandlers = new List<ICommandHandler>
     new EvaluateCommandHandler(),
     new NewGameCommandHandler(),
     new PassCommandHandler(),
-    new ValidMovesCommandHandler()
+    new ValidMovesCommandHandler(),
+    new UndoCommandHandler()
 };
 
 var game = new Game();
