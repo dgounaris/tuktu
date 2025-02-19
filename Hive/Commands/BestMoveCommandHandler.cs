@@ -27,7 +27,7 @@ public class BestMoveCommandHandler : ICommandHandler
                 throw new NotImplementedException($"Unknown command: {command}");
             }
             
-            Console.WriteLine($"{bestMove.Piece} {PieceMoveParsingUtilities.PositionToMove(game.Board, bestMove.NewPosition)}".Trim());
+            Console.WriteLine($"{bestMove.Piece.Print()} {PieceMoveParsingUtilities.PositionToMove(game.Board, bestMove.NewPosition)}".Trim());
             Console.WriteLine("ok");
         }
         catch (Exception e)
