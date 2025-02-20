@@ -13,7 +13,6 @@ public class PassCommandHandler : ICommandHandler
         {
             game.PlayMove("pass");
             game.PrintUHP();
-            Console.WriteLine("ok");
         }
         catch (Exception e)
         {

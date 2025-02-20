@@ -27,7 +27,16 @@ while (game.IsGameOver() == -1)
         var handler = commandHandlers.FirstOrDefault(c => c.CommandString == commandId);
         if (handler is not null)
         {
-            handler.Handle(game, command ?? string.Empty);
+            try
+            {
+                handler.Handle(game, command ?? string.Empty);
+                Console.WriteLine("ok");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("error");
+                Console.WriteLine(ex.Message);
+            }
         }
         else
         {

@@ -28,7 +28,6 @@ public class BestMoveCommandHandler : ICommandHandler
             }
             
             Console.WriteLine($"{bestMove.Piece.Print()} {PieceMoveParsingUtilities.PositionToMove(game.Board, bestMove.NewPosition)}".Trim());
-            Console.WriteLine("ok");
         }
         catch (Exception e)
         {

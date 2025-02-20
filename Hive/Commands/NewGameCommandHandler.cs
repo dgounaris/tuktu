@@ -12,7 +12,6 @@ public class NewGameCommandHandler : ICommandHandler
                 command[(command.IndexOf(' ') + 1)..] : string.Empty;
             game.LoadFromUHP(newGameSetup);
             game.PrintUHP();
-            Console.WriteLine("ok");
         }
         catch (Exception e)
         {

@@ -14,7 +14,6 @@ public class ValidMovesCommandHandler : ICommandHandler
             var validMoves = game.GetAllValidMoves()
                 .Select(it => $"{it.Piece.Print()} {PieceMoveParsingUtilities.PositionToMove(game.Board, it.NewPosition)}".Trim());
             Console.WriteLine($"{string.Join(';', validMoves)}");
-            Console.WriteLine("ok");
         }
         catch (Exception e)
         {

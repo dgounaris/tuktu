@@ -13,7 +13,6 @@ public class PlayCommandHandler : ICommandHandler
         {
             game.PlayMove(command[(command.IndexOf(' ') + 1)..]);
             game.PrintUHP();
-            Console.WriteLine("ok");
         }
         catch (Exception e)
         {
