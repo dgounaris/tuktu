@@ -9,15 +9,7 @@ public class PassCommandHandler : ICommandHandler
 
     public void Handle(Game game, string command)
     {
-        try
-        {
-            game.PlayMove("pass");
-            game.PrintUHP();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Unknown error");
-            Console.WriteLine(e.Message);
-        }
+        game.PlayMove("pass");
+        game.PrintUHP();
     }
 }

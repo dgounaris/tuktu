@@ -11,28 +11,20 @@ public class BestMoveCommandHandler : ICommandHandler
 
     public void Handle(Game game, string command)
     {
-        try
+        Move bestMove;
+        if (command.Split(' ')[1].Equals("time"))
         {
-            Move bestMove;
-            if (command.Split(' ')[1].Equals("time"))
-            {
-                bestMove = positionEvaluator.Evaluate(game, TimeSpan.Zero);
-            }
-            else if (command.Split(' ')[1].Equals("depth"))
-            {
-                bestMove = positionEvaluator.Evaluate(game, 2);
-            }
-            else
-            {
-                throw new NotImplementedException($"Unknown command: {command}");
-            }
-            
-            Console.WriteLine($"{bestMove.Piece.Print()} {PieceMoveParsingUtilities.PositionToMove(game.Board, bestMove.NewPosition)}".Trim());
+            bestMove = positionEvaluator.Evaluate(game, TimeSpan.Zero);
         }
-        catch (Exception e)
+        else if (command.Split(' ')[1].Equals("depth"))
         {
-            Console.WriteLine("Unknown error");
-            Console.WriteLine(e.Message);
+            bestMove = positionEvaluator.Evaluate(game, 2);
         }
+        else
+        {
+            throw new NotImplementedException($"Unknown command: {command}");
+        }
+        
+        Console.WriteLine($"{bestMove.Piece.Print()} {PieceMoveParsingUtilities.PositionToMove(game.Board, bestMove.NewPosition)}".Trim());
     }
 }

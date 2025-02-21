@@ -34,19 +34,21 @@ while (game.IsGameOver() == -1)
             }
             catch (Exception ex)
             {
-                Console.WriteLine("error");
+                Console.WriteLine("err");
                 Console.WriteLine(ex.Message);
+                Console.WriteLine("ok");
             }
         }
         else
         {
-            Console.WriteLine("Invalid command.");
+            Console.WriteLine("err Invalid command.");
+            Console.WriteLine("ok");
         }
     }
     catch (Exception e)
     {
-        Console.WriteLine("Unknown error");
-        Console.WriteLine(e.Message);
+        Console.WriteLine("err Invalid command format.");
+        Console.WriteLine("ok");
     }
 }
 
