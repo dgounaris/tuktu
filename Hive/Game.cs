@@ -145,7 +145,7 @@ public class Game
         }
         var printText = string.Join(';',
             "Base",
-            _currentTurn > 1 ? "InProgress" : "NotStarted",
+            GetUHPGameState(),
             _currentTurn % 2 == 1 ? $"White[{(_currentTurn+1) / 2}]" : $"Black[{(_currentTurn+1) / 2}]");
         if (MoveHistory.Count != 0)
         {
@@ -154,6 +154,29 @@ public class Game
         Console.WriteLine(printText);
     }
 
+    private string GetUHPGameState() // todo calculate draw
+    {
+        if (IsGameOver() == 0)
+        {
+            return GameState.WhiteWins.ToString();
+        }
+        else if (IsGameOver() == 1)
+        {
+            return GameState.BlackWins.ToString();
+        }
+        else
+        {
+            if (_currentTurn <= 1)
+            {
+                return GameState.NotStarted.ToString();
+            }
+            else
+            {
+                return GameState.InProgress.ToString();
+            }
+        }
+    }
+    
     public string ParseToNotation()
     {
         return $":{(currentPlayerColor ? "w" : "b")}{Board.ParseToNotation()}";
