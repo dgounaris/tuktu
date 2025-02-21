@@ -6,14 +6,6 @@ public class PrintCommandHandler : ICommandHandler
 
     public void Handle(Game game, string command)
     {
-        try
-        {
-            game.Print();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Unknown error");
-            Console.WriteLine(e.Message);
-        }
+        game.Print();
     }
 }

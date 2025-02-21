@@ -6,6 +6,5 @@ public class InfoCommandHandler : ICommandHandler
     public void Handle(Game game, string command)
     {
         Console.WriteLine("id Tuktu v0.1");
-        Console.WriteLine("ok");
     }
 }
